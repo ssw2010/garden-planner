@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garden Planner Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #f5f0e8; color: #2c2a1e; min-height: 100vh; padding: 24px 16px; }
+  h1 { font-family: 'Lora', serif; font-size: 26px; font-weight: 600; color: #2c2a1e; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: #7a7560; margin-bottom: 24px; }
+  .layout { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+  .sidebar { width: 220px; flex-shrink: 0; }
+  .sidebar-section { background: #fff; border: 1px solid #ddd8c4; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .sidebar-section h3 { font-family: 'Lora', serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #7a7560; margin-bottom: 12px; }
+  .bed-selector { display: flex; flex-direction: column; gap: 6px; }
+  .bed-btn { background: #f5f0e8; border: 1.5px solid #ddd8c4; border-radius: 8px; padding: 8px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #2c2a1e; cursor: pointer; text-align: left; transition: all 0.15s; }
+  .bed-btn:hover { background: #ece6d5; }
+  .bed-btn.active { background: #3b6d11; border-color: #3b6d11; color: #fff; }
+  .plant-palette { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
+  .palette-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #f5f0e8; border: 1.5px dashed #ddd8c4; border-radius: 8px; cursor: grab; font-size: 13px; transition: background 0.15s; user-select: none; }
+  .palette-item:hover { background: #ece6d5; }
+  .palette-item:active { cursor: grabbing; }
+  .canvas-wrap { flex: 1; min-width: 320px; }
+  .canvas-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .bed-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: #2c2a1e; }
+  .bed-dims { font-size: 12px; color: #7a7560; background: #ece6d5; padding: 3px 10px; border-radius: 20px; }
+  #garden-canvas { background: #e8f0d8; border: 2px solid #8faa5e; border-radius: 12px; display: block; touch-action: none; cursor: default; width: 100%; }
+  .toolbar { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .tool-btn { background: #fff; border: 1.5px solid #ddd8c4; border-radius: 8px; padding: 7px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #2c2a1e; cursor: pointer; transition: all 0.15s; }
+  .tool-btn:hover { background: #ece6d5; border-color: #b5aa8c; }
+  .tool-btn.danger { color: #a32d2d; border-color: #f09595; }
+  .tool-btn.danger:hover { background: #fcebeb; }
+  .tool-btn.primary { background: #3b6d11; color: #fff; border-color: #3b6d11; }
+  .tool-btn.primary:hover { background: #27500a; }
+  .info-bar { margin-top: 12px; font-size: 12px; color: #7a7560; display: flex; gap: 16px; flex-wrap: wrap; }
+  .info-item span { color: #3b6d11; font-weight: 500; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5a5540; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #2c2a1e; color: #f5f0e8; padding: 10px 20px; border-radius: 24px; font-size: 13px; transition: transform 0.3s ease; pointer-events: none; z-index: 999; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  @media (max-width: 600px) { .sidebar { width: 100%; } .layout { flex-direction: column; } }
+</style>
+</head>
+<body>
+
+<h1>Garden Planner</h1>
+<p class="subtitle">Drag plants into your beds. Click to select, drag to move, double-click to remove.</p>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <h3>Garden Beds</h3>
+      <div class="bed-selector" id="bed-selector"></div>
+    </div>
+    <div class="sidebar-section">
+      <h3>Add Plants</h3>
+      <div class="plant-palette" id="plant-palette"></div>
+    </div>
+    <div class="sidebar-section">
+      <h3>Legend</h3>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+  <div class="canvas-wrap">
+    <div class="canvas-header">
+      <div class="bed-title" id="bed-title">Select a bed</div>
+      <div class="bed-dims" id="bed-dims"></div>
+    </div>
+    <canvas id="garden-canvas" width="640" height="420"></canvas>
+    <div class="toolbar">
+      <button class="tool-btn" onclick="clearSelected()">Deselect</button>
+      <button class="tool-btn danger" onclick="deleteSelected()">Remove selected</button>
+      <button class="tool-btn primary" onclick="saveLayout()">Save layout</button>
+    </div>
+    <div class="info-bar">
+      <div class="info-item">Plants placed: <span id="plant-count">0</span></div>
+      <div class="info-item">Free space: <span id="free-space">—</span></div>
+      <div class="info-item" id="selected-info" style="display:none">Selected: <span id="selected-name">—</span></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const PLANT_DEFS = {
+  Tomato:     { color:'#d94f2a', shape:'round'  },
+  Basil:      { color:'#3a8c3a', shape:'herb'   },
+  Carrot:     { color:'#e07a20', shape:'root'   },
+  Lettuce:    { color:'#72bb3a', shape:'leafy'  },
+  Cucumber:   { color:'#3a9a55', shape:'vine'   },
+  Zucchini:   { color:'#5aaa28', shape:'vine'   },
+  Capsicum:   { color:'#cc2222', shape:'round'  },
+  Eggplant:   { color:'#7040aa', shape:'round'  },
+  Pumpkin:    { color:'#dd8010', shape:'vine'   },
+  Spinach:    { color:'#2a7a2a', shape:'leafy'  },
+  Parsley:    { color:'#44aa44', shape:'herb'   },
+  Chilli:     { color:'#bb1111', shape:'tall'   },
+  Beans:      { color:'#5a9a30', shape:'tall'   },
+  Peas:       { color:'#70bb30', shape:'vine'   },
+  Broccoli:   { color:'#2a6a2a', shape:'leafy'  },
+  Cauliflower:{ color:'#8faa44', shape:'leafy'  },
+  Onion:      { color:'#c07030', shape:'bulb'   },
+  Garlic:     { color:'#b09050', shape:'bulb'   },
+};
+
+function lighten(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgb(${Math.min(r+a,255)},${Math.min(g+a,255)},${Math.min(b+a,255)})`;}
+function darken(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgb(${Math.max(r-a,0)},${Math.max(g-a,0)},${Math.max(b-a,0)})`;}
+function plantColor(n){return(PLANT_DEFS[n]||{}).color||'#'+Math.floor(Math.abs(Math.sin(n.length*1234)*16777215)).toString(16).padStart(6,'0');}
+
+function drawRound(ctx,s,c){
+  ctx.beginPath();ctx.arc(0,s*.08,s*.72,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();ctx.strokeStyle=darken(c,40);ctx.lineWidth=1.5;ctx.stroke();
+  ctx.beginPath();ctx.arc(-s*.22,-s*.18,s*.18,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.28)';ctx.fill();
+  ctx.beginPath();ctx.moveTo(0,-s*.64);ctx.lineTo(0,-s*.18);ctx.strokeStyle='#4a7a20';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();
+  ctx.beginPath();ctx.ellipse(-s*.18,-s*.5,s*.2,s*.09,-.6,0,Math.PI*2);ctx.fillStyle='#5aaa28';ctx.fill();
+  ctx.beginPath();ctx.ellipse(s*.18,-s*.5,s*.2,s*.09,.6,0,Math.PI*2);ctx.fillStyle='#5aaa28';ctx.fill();
+}
+function drawLeafy(ctx,s,c){
+  for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2-Math.PI/2;ctx.save();ctx.rotate(a);ctx.beginPath();ctx.ellipse(0,-s*.48,s*.22,s*.46,0,0,Math.PI*2);ctx.fillStyle=i%2===0?c:lighten(c,28);ctx.strokeStyle=darken(c,30);ctx.lineWidth=.8;ctx.fill();ctx.stroke();ctx.restore();}
+  ctx.beginPath();ctx.arc(0,0,s*.28,0,Math.PI*2);ctx.fillStyle=lighten(c,50);ctx.fill();ctx.strokeStyle=darken(c,20);ctx.lineWidth=1;ctx.stroke();
+}
+function drawHerb(ctx,s,c){
+  ctx.beginPath();ctx.moveTo(0,s*.7);ctx.lineTo(0,s*.1);ctx.strokeStyle=darken(c,40);ctx.lineWidth=1.8;ctx.lineCap='round';ctx.stroke();
+  [{x:0,y:-s*.1,rx:s*.3,ry:s*.38,a:0},{x:-s*.34,y:s*.22,rx:s*.22,ry:s*.3,a:.5},{x:s*.34,y:s*.22,rx:s*.22,ry:s*.3,a:-.5}].forEach((cl,i)=>{ctx.beginPath();ctx.ellipse(cl.x,cl.y,cl.rx,cl.ry,cl.a,0,Math.PI*2);ctx.fillStyle=i===0?c:lighten(c,20);ctx.strokeStyle=darken(c,30);ctx.lineWidth=1;ctx.fill();ctx.stroke();});
+}
+function drawRoot(ctx,s,c){
+  ctx.beginPath();ctx.moveTo(-s*.28,-s*.3);ctx.quadraticCurveTo(-s*.28,s*.6,0,s*.82);ctx.quadraticCurveTo(s*.28,s*.6,s*.28,-s*.3);ctx.closePath();ctx.fillStyle=c;ctx.strokeStyle=darken(c,40);ctx.lineWidth=1.5;ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-s*.06,-s*.28);ctx.quadraticCurveTo(-s*.08,s*.3,0,s*.65);ctx.strokeStyle=lighten(c,50);ctx.lineWidth=1.5;ctx.stroke();
+  [-s*.3,-s*.05,s*.22].forEach((x,i)=>{ctx.beginPath();ctx.moveTo(x,-s*.3);ctx.quadraticCurveTo(x-s*.12*(i%2===0?1:-1),-s*.82,x+s*.08*(i%2===0?-1:1),-s*1.0);ctx.strokeStyle='#4a8a28';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();});
+}
+function drawTall(ctx,s,c){
+  ctx.beginPath();ctx.moveTo(0,s*.8);ctx.lineTo(0,-s*.4);ctx.strokeStyle='#4a7a20';ctx.lineWidth=2.2;ctx.lineCap='round';ctx.stroke();
+  [[-s*.42,-s*.1],[s*.44,s*.18],[-s*.4,s*.44]].forEach(([ex,ey])=>{
+    ctx.beginPath();ctx.moveTo(0,ey+s*.12);ctx.lineTo(ex,ey);ctx.strokeStyle='#4a7a20';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.beginPath();ctx.ellipse(ex+(ex<0?-s*.16:s*.16),ey,s*.18,s*.1,ex<0?-.5:.5,0,Math.PI*2);ctx.fillStyle=c;ctx.strokeStyle=darken(c,35);ctx.lineWidth=1;ctx.fill();ctx.stroke();
+  });
+  ctx.beginPath();ctx.ellipse(-s*.22,-s*.56,s*.2,s*.32,-.5,0,Math.PI*2);ctx.fillStyle='#5aaa28';ctx.fill();
+  ctx.beginPath();ctx.ellipse(s*.22,-s*.56,s*.2,s*.32,.5,0,Math.PI*2);ctx.fillStyle='#4a9a20';ctx.fill();
+}
+function drawVine(ctx,s,c){
+  [{a:-.8,len:s*.7},{a:.8,len:s*.65},{a:2.4,len:s*.55}].forEach(v=>{
+    ctx.save();ctx.rotate(v.a);ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(s*.1,-v.len*.3,s*.3,-v.len*.5,s*.1,-v.len);ctx.strokeStyle='#5a9a28';ctx.lineWidth=1.5;ctx.lineCap='round';ctx.stroke();
+    ctx.beginPath();ctx.ellipse(s*.08,-v.len,s*.18,s*.26,.3,0,Math.PI*2);ctx.fillStyle='#72bb3a';ctx.fill();ctx.restore();
+  });
+  ctx.beginPath();ctx.ellipse(0,s*.1,s*.3,s*.2,.3,0,Math.PI*2);ctx.fillStyle=c;ctx.strokeStyle=darken(c,35);ctx.lineWidth=1.5;ctx.fill();ctx.stroke();
+}
+function drawBulb(ctx,s,c){
+  ctx.beginPath();ctx.ellipse(0,s*.38,s*.44,s*.38,0,0,Math.PI*2);ctx.fillStyle=c;ctx.strokeStyle=darken(c,35);ctx.lineWidth=1.5;ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.ellipse(0,s*.38,s*.3,s*.24,0,0,Math.PI*2);ctx.strokeStyle=lighten(c,40);ctx.lineWidth=1;ctx.stroke();
+  for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(i*s*.12,s*.72);ctx.quadraticCurveTo(i*s*.18,s*.95,i*s*.14,s*1.0);ctx.strokeStyle=darken(c,50);ctx.lineWidth=.8;ctx.stroke();}
+  [-s*.2,0,s*.2].forEach((x,i)=>{ctx.beginPath();ctx.moveTo(x,s*.06);ctx.quadraticCurveTo(x+s*.12*(i===0?-1:1),-s*.42,x+s*.06*(i===0?-1:1),-s*.78);ctx.strokeStyle='#5aaa28';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();});
+}
+
+function drawPlantShape(ctx,name,cx,cy,r,isSelected){
+  const def=PLANT_DEFS[name]||{color:plantColor(name),shape:'herb'};
+  const s=Math.max(r*.72,10);
+  ctx.save();ctx.translate(cx,cy);
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=def.color+'18';ctx.fill();ctx.strokeStyle=def.color+'44';ctx.lineWidth=1;ctx.stroke();
+  if(isSelected){ctx.beginPath();ctx.arc(0,0,s+7,0,Math.PI*2);ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.setLineDash([5,4]);ctx.stroke();ctx.setLineDash([]);}
+  switch(def.shape){
+    case'round': drawRound(ctx,s,def.color);break;
+    case'leafy': drawLeafy(ctx,s,def.color);break;
+    case'herb':  drawHerb(ctx,s,def.color);break;
+    case'root':  drawRoot(ctx,s,def.color);break;
+    case'tall':  drawTall(ctx,s,def.color);break;
+    case'vine':  drawVine(ctx,s,def.color);break;
+    case'bulb':  drawBulb(ctx,s,def.color);break;
+  }
+  ctx.fillStyle='#fff';ctx.font=`bold ${Math.min(10,Math.max(7,s*.36))}px DM Sans,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=2;ctx.fillText(name.substring(0,4),0,s*.18);ctx.shadowBlur=0;
+  ctx.restore();
+}
+
+function drawPaletteIcon(canvas,name){
+  const c=canvas.getContext('2d');c.clearRect(0,0,24,24);c.save();c.translate(12,12);
+  const def=PLANT_DEFS[name]||{color:plantColor(name),shape:'herb'};
+  const s=8;
+  switch(def.shape){
+    case'round': c.beginPath();c.arc(0,1,s*.72,0,Math.PI*2);c.fillStyle=def.color;c.fill();c.beginPath();c.moveTo(0,-6);c.lineTo(0,-2);c.strokeStyle='#4a7a20';c.lineWidth=1.5;c.lineCap='round';c.stroke();break;
+    case'leafy': for(let i=0;i<5;i++){const a=(i/5)*Math.PI*2;c.save();c.rotate(a);c.beginPath();c.ellipse(0,-s*.5,s*.22,s*.44,0,0,Math.PI*2);c.fillStyle=i%2===0?def.color:lighten(def.color,28);c.fill();c.restore();}break;
+    case'herb': c.beginPath();c.ellipse(0,-1,s*.3,s*.42,0,0,Math.PI*2);c.fillStyle=def.color;c.fill();c.beginPath();c.ellipse(-s*.36,s*.2,s*.22,s*.3,.5,0,Math.PI*2);c.fillStyle=lighten(def.color,20);c.fill();c.beginPath();c.ellipse(s*.36,s*.2,s*.22,s*.3,-.5,0,Math.PI*2);c.fillStyle=lighten(def.color,20);c.fill();break;
+    case'root': c.beginPath();c.moveTo(-s*.3,-2);c.quadraticCurveTo(-s*.3,s*.5,0,s*.85);c.quadraticCurveTo(s*.3,s*.5,s*.3,-2);c.closePath();c.fillStyle=def.color;c.fill();c.beginPath();c.moveTo(0,-2);c.lineTo(0,-s*1.0);c.strokeStyle='#4a8a28';c.lineWidth=1.5;c.lineCap='round';c.stroke();break;
+    case'tall': c.beginPath();c.moveTo(0,s*.8);c.lineTo(0,-s*.5);c.strokeStyle='#4a7a20';c.lineWidth=2;c.lineCap='round';c.stroke();c.beginPath();c.ellipse(-s*.3,s*.1,s*.18,s*.1,-.5,0,Math.PI*2);c.fillStyle=def.color;c.fill();break;
+    case'vine': c.beginPath();c.moveTo(0,0);c.bezierCurveTo(s*.3,-s*.3,s*.6,-s*.6,s*.2,-s*.9);c.strokeStyle='#5a9a28';c.lineWidth=1.5;c.lineCap='round';c.stroke();c.beginPath();c.ellipse(0,s*.2,s*.32,s*.2,.3,0,Math.PI*2);c.fillStyle=def.color;c.fill();break;
+    case'bulb': c.beginPath();c.ellipse(0,s*.3,s*.44,s*.38,0,0,Math.PI*2);c.fillStyle=def.color;c.fill();c.beginPath();c.moveTo(0,s*.0);c.lineTo(0,-s*.85);c.strokeStyle='#5aaa28';c.lineWidth=1.8;c.lineCap='round';c.stroke();break;
+  }
+  c.restore();
+}
+
+let gardenData=JSON.parse(localStorage.getItem('gardenData3')||'null')||{beds:{'Veggie Patch':{width:3,length:4,plants:[{id:1,name:'Tomato',spacing:.5,sun:'full',water:'high',x:.6,y:.6},{id:2,name:'Basil',spacing:.3,sun:'full',water:'medium',x:1.4,y:.6},{id:3,name:'Carrot',spacing:.15,sun:'full',water:'medium',x:.6,y:1.6},{id:4,name:'Lettuce',spacing:.3,sun:'partial',water:'medium',x:2.0,y:1.0},{id:5,name:'Onion',spacing:.1,sun:'full',water:'medium',x:1.4,y:1.6},{id:6,name:'Beans',spacing:.15,sun:'full',water:'medium',x:2.2,y:1.8}]},'Herb Garden':{width:2,length:2,plants:[{id:7,name:'Parsley',spacing:.3,sun:'partial',water:'medium',x:.5,y:.5},{id:8,name:'Basil',spacing:.3,sun:'full',water:'medium',x:1.2,y:.5},{id:9,name:'Chilli',spacing:.4,sun:'full',water:'low',x:.6,y:1.3},{id:10,name:'Garlic',spacing:.1,sun:'full',water:'low',x:1.5,y:1.3}]}}};
+
+let nextId=100,activeBed=null,selectedPlant=null,dragging=null,dragOffsetX=0,dragOffsetY=0,scale=80;
+const padX=44,padY=34;
+const canvas=document.getElementById('garden-canvas');
+const ctx=canvas.getContext('2d');
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+function buildSidebar(){
+  const sel=document.getElementById('bed-selector');sel.innerHTML='';
+  Object.keys(gardenData.beds).forEach(name=>{const btn=document.createElement('button');btn.className='bed-btn'+(name===activeBed?' active':'');btn.textContent=name;btn.onclick=()=>selectBed(name);sel.appendChild(btn);});
+  const pal=document.getElementById('plant-palette');pal.innerHTML='';
+  Object.keys(PLANT_DEFS).forEach(name=>{
+    const el=document.createElement('div');el.className='palette-item';el.draggable=true;el.dataset.plant=name;
+    const ic=document.createElement('canvas');ic.width=24;ic.height=24;ic.style.cssText='width:24px;height:24px;flex-shrink:0';
+    el.appendChild(ic);el.appendChild(document.createTextNode(name));
+    el.addEventListener('dragstart',e=>e.dataTransfer.setData('plant',name));
+    el.addEventListener('touchstart',handlePaletteTouchStart,{passive:false});
+    pal.appendChild(el);drawPaletteIcon(ic,name);
+  });
+  buildLegend();
+}
+
+function buildLegend(){
+  const leg=document.getElementById('legend');leg.innerHTML='';
+  if(!activeBed)return;
+  const seen=new Set();
+  gardenData.beds[activeBed].plants.forEach(p=>{
+    if(!seen.has(p.name)){seen.add(p.name);
+      const ic=document.createElement('canvas');ic.width=18;ic.height=18;ic.style.cssText='width:18px;height:18px;flex-shrink:0';
+      drawPaletteIcon(ic,p.name);
+      const w=document.createElement('div');w.className='legend-item';w.appendChild(ic);w.appendChild(document.createTextNode(p.name));leg.appendChild(w);
+    }
+  });
+}
+
+function selectBed(name){
+  activeBed=name;selectedPlant=null;buildSidebar();resizeCanvas();draw();updateInfo();
+  document.getElementById('bed-title').textContent=name;
+  const bed=gardenData.beds[name];document.getElementById('bed-dims').textContent=`${bed.width}m × ${bed.length}m`;
+}
+
+function resizeCanvas(){
+  if(!activeBed)return;
+  const bed=gardenData.beds[activeBed];
+  const availW=Math.min(canvas.parentElement.clientWidth,700)-20;
+  scale=Math.min(Math.floor((availW-padX*2)/bed.width),Math.floor((420-padY*2)/bed.length));
+  scale=Math.max(scale,40);
+  canvas.width=bed.width*scale+padX*2;canvas.height=bed.length*scale+padY*2;
+}
+
+function bedToCanvas(x,y){return[padX+x*scale,padY+y*scale];}
+function canvasToBed(cx,cy){return[(cx-padX)/scale,(cy-padY)/scale];}
+
+function draw(){
+  if(!activeBed)return;
+  const bed=gardenData.beds[activeBed];
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#d4e8b0';ctx.beginPath();ctx.roundRect(padX,padY,bed.width*scale,bed.length*scale,8);ctx.fill();
+  ctx.strokeStyle='rgba(100,140,60,.22)';ctx.lineWidth=1;
+  for(let x=0;x<=bed.width;x++){ctx.beginPath();ctx.moveTo(padX+x*scale,padY);ctx.lineTo(padX+x*scale,padY+bed.length*scale);ctx.stroke();}
+  for(let y=0;y<=bed.length;y++){ctx.beginPath();ctx.moveTo(padX,padY+y*scale);ctx.lineTo(padX+bed.width*scale,padY+y*scale);ctx.stroke();}
+  ctx.fillStyle='#7a9a50';ctx.font='11px DM Sans,sans-serif';ctx.textAlign='center';
+  for(let x=0;x<=bed.width;x++)ctx.fillText(x+'m',padX+x*scale,padY-10);
+  ctx.textAlign='right';for(let y=0;y<=bed.length;y++)ctx.fillText(y+'m',padX-8,padY+y*scale+4);
+  bed.plants.forEach(p=>{const[cx,cy]=bedToCanvas(p.x,p.y);const r=Math.max((p.spacing/2)*scale,13);drawPlantShape(ctx,p.name,cx,cy,r,selectedPlant&&selectedPlant.id===p.id);});
+}
+
+function plantAt(cx,cy){
+  if(!activeBed)return null;
+  const[bx,by]=canvasToBed(cx,cy);let closest=null,minDist=999;
+  gardenData.beds[activeBed].plants.forEach(p=>{const d=Math.hypot(p.x-bx,p.y-by);const h=Math.max(p.spacing/2,14/scale);if(d<h&&d<minDist){minDist=d;closest=p;}});
+  return closest;
+}
+
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function snapToBed(x,y,sp){const bed=gardenData.beds[activeBed];const h=sp/2;return[clamp(x,h,bed.width-h),clamp(y,h,bed.length-h)];}
+
+function updateInfo(){
+  if(!activeBed)return;
+  const bed=gardenData.beds[activeBed];
+  const total=bed.width*bed.length;
+  const used=bed.plants.reduce((s,p)=>s+p.spacing*p.spacing,0);
+  document.getElementById('plant-count').textContent=bed.plants.length;
+  document.getElementById('free-space').textContent=Math.max(0,total-used).toFixed(2)+'m²';
+  if(selectedPlant){document.getElementById('selected-info').style.display='';document.getElementById('selected-name').textContent=`${selectedPlant.name} (${selectedPlant.spacing}m spacing)`;}
+  else document.getElementById('selected-info').style.display='none';
+  buildLegend();
+}
+
+function getXY(e){const r=canvas.getBoundingClientRect();return[(e.clientX-r.left)*(canvas.width/r.width),(e.clientY-r.top)*(canvas.height/r.height)];}
+
+canvas.addEventListener('mousedown',e=>{
+  if(!activeBed)return;const[cx,cy]=getXY(e);const p=plantAt(cx,cy);
+  if(p){const[bx,by]=canvasToBed(cx,cy);dragging=p;dragOffsetX=bx-p.x;dragOffsetY=by-p.y;selectedPlant=p;updateInfo();draw();}
+});
+canvas.addEventListener('mousemove',e=>{
+  if(!dragging)return;const[cx,cy]=getXY(e);const[bx,by]=canvasToBed(cx,cy);
+  const[nx,ny]=snapToBed(bx-dragOffsetX,by-dragOffsetY,dragging.spacing);
+  dragging.x=Math.round(nx*100)/100;dragging.y=Math.round(ny*100)/100;draw();
+});
+canvas.addEventListener('mouseup',()=>{if(dragging){saveToStorage();dragging=null;}});
+canvas.addEventListener('mouseleave',()=>{if(dragging){saveToStorage();dragging=null;}});
+canvas.addEventListener('dblclick',e=>{if(!activeBed)return;const[cx,cy]=getXY(e);const p=plantAt(cx,cy);if(p)removePlant(p.id);});
+
+function getTXY(t){const r=canvas.getBoundingClientRect();return[(t.clientX-r.left)*(canvas.width/r.width),(t.clientY-r.top)*(canvas.height/r.height)];}
+let lastTap=0;
+canvas.addEventListener('touchstart',e=>{
+  if(!activeBed)return;e.preventDefault();const t=e.touches[0];const[cx,cy]=getTXY(t);const p=plantAt(cx,cy);const now=Date.now();
+  if(p&&now-lastTap<350){removePlant(p.id);lastTap=0;return;}lastTap=now;
+  if(p){const[bx,by]=canvasToBed(cx,cy);dragging=p;dragOffsetX=bx-p.x;dragOffsetY=by-p.y;selectedPlant=p;updateInfo();draw();}
+},{passive:false});
+canvas.addEventListener('touchmove',e=>{
+  if(!dragging)return;e.preventDefault();const t=e.touches[0];const[cx,cy]=getTXY(t);const[bx,by]=canvasToBed(cx,cy);
+  const[nx,ny]=snapToBed(bx-dragOffsetX,by-dragOffsetY,dragging.spacing);dragging.x=Math.round(nx*100)/100;dragging.y=Math.round(ny*100)/100;draw();
+},{passive:false});
+canvas.addEventListener('touchend',()=>{if(dragging){saveToStorage();dragging=null;}});
+
+canvas.addEventListener('dragover',e=>e.preventDefault());
+canvas.addEventListener('drop',e=>{
+  e.preventDefault();if(!activeBed){showToast('Select a bed first');return;}
+  const name=e.dataTransfer.getData('plant');const[cx,cy]=getXY(e);const[bx,by]=canvasToBed(cx,cy);addPlantToCanvas(name,bx,by);
+});
+
+let palDragPlant=null;
+function handlePaletteTouchStart(e){
+  e.preventDefault();palDragPlant=e.currentTarget.dataset.plant;
+  function onMove(ev){ev.preventDefault();const t=ev.touches[0];const r=canvas.getBoundingClientRect();canvas.style.boxShadow=(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom)?'0 0 0 3px #3b6d11':'';}
+  function onEnd(ev){
+    canvas.style.boxShadow='';if(!palDragPlant)return;const t=ev.changedTouches[0];const r=canvas.getBoundingClientRect();
+    if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){
+      if(!activeBed)showToast('Select a bed first');
+      else{const cx=(t.clientX-r.left)*(canvas.width/r.width);const cy=(t.clientY-r.top)*(canvas.height/r.height);const[bx,by]=canvasToBed(cx,cy);addPlantToCanvas(palDragPlant,bx,by);}
+    }
+    palDragPlant=null;document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onEnd);
+  }
+  document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onEnd);
+}
+
+const DEFAULT_SPACING={Tomato:.5,Basil:.3,Carrot:.15,Lettuce:.3,Cucumber:.5,Zucchini:.6,Capsicum:.45,Eggplant:.5,Pumpkin:.9,Spinach:.2,Parsley:.25,Chilli:.4,Beans:.15,Peas:.1,Broccoli:.5,Cauliflower:.6,Onion:.1,Garlic:.1};
+
+function addPlantToCanvas(name,bx,by){
+  const sp=DEFAULT_SPACING[name]||.3;const bed=gardenData.beds[activeBed];
+  const[nx,ny]=snapToBed(bx,by,sp);
+  const used=bed.plants.reduce((s,p)=>s+p.spacing*p.spacing,0);
+  if(used+sp*sp>bed.width*bed.length){showToast('Not enough space!');return;}
+  const np={id:nextId++,name,spacing:sp,sun:'full',water:'medium',x:nx,y:ny};
+  bed.plants.push(np);selectedPlant=np;saveToStorage();draw();updateInfo();showToast(`${name} added!`);
+}
+
+function removePlant(id){
+  const bed=gardenData.beds[activeBed];const p=bed.plants.find(p=>p.id===id);const name=p?p.name:'Plant';
+  bed.plants=bed.plants.filter(p=>p.id!==id);if(selectedPlant&&selectedPlant.id===id)selectedPlant=null;
+  saveToStorage();draw();updateInfo();showToast(`${name} removed`);
+}
+
+function clearSelected(){selectedPlant=null;draw();updateInfo();}
+function deleteSelected(){if(selectedPlant)removePlant(selectedPlant.id);}
+function saveLayout(){saveToStorage();showToast('Layout saved!');}
+function saveToStorage(){localStorage.setItem('gardenData3',JSON.stringify(gardenData));}
+
+window.addEventListener('resize',()=>{if(activeBed){resizeCanvas();draw();}});
+buildSidebar();
+selectBed(Object.keys(gardenData.beds)[0]);
+</script>
+</body>
+</html>

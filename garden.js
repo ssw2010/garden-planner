@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
 const DATA_FILE = path.join(__dirname, 'garden.json');
 
@@ -359,6 +360,163 @@ function checkBed(bedName) {
   console.log('─'.repeat(50) + '\n');
 }
 
+function mapCmd(bedName) {
+  if (!bedName) {
+    console.error('❌  Usage: node garden.js map "Bed Name"');
+    process.exit(1);
+  }
+
+  const data = loadData();
+  if (!data.beds[bedName]) {
+    console.error(`❌  No bed called "${bedName}" found.`);
+    process.exit(1);
+  }
+
+  const bed = data.beds[bedName];
+  if (bed.plants.length === 0) {
+    console.log(`ℹ️   "${bedName}" has no plants to map.`);
+    return;
+  }
+
+  const SCALE = 120;       // px per metre
+  const GRID_STEP = 0.5;   // metres between grid lines
+  const PAD = { top: 30, right: 30, bottom: 50, left: 50 };
+
+  const svgW = Math.round(bed.width * SCALE);
+  const svgH = Math.round(bed.length * SCALE);
+
+  const PALETTE = [
+    '#e74c3c', '#e67e22', '#f39c12', '#27ae60', '#16a085',
+    '#2980b9', '#8e44ad', '#e91e63', '#00bcd4', '#8bc34a',
+    '#ff5722', '#607d8b', '#795548', '#ff9800', '#cddc39',
+  ];
+
+  const colorMap = {};
+  bed.plants.forEach(p => {
+    if (!colorMap[p.name]) colorMap[p.name] = PALETTE[Object.keys(colorMap).length % PALETTE.length];
+  });
+
+  // Greedy row-packing layout (left→right, top→bottom)
+  const placements = [];
+  let curX = 0, curY = 0, rowH = 0;
+  for (const plant of bed.plants) {
+    const d = plant.spacing, r = d / 2;
+    if (curX > 0 && curX + d > bed.width) { curX = 0; curY += rowH; rowH = 0; }
+    placements.push({ plant, cx: curX + r, cy: curY + r });
+    curX += d;
+    rowH = Math.max(rowH, d);
+  }
+
+  // Grid lines + axis labels
+  let grid = '';
+  for (let x = 0; x <= bed.width + 0.001; x += GRID_STEP) {
+    const px = Math.round(x * SCALE);
+    const onMetre = Math.abs(x - Math.round(x)) < 0.001;
+    grid += `<line x1="${px}" y1="0" x2="${px}" y2="${svgH}" stroke="${onMetre ? '#c8c8c8' : '#e8e8e8'}" stroke-width="${onMetre ? 1.5 : 0.75}"/>`;
+    if (onMetre) grid += `<text x="${px}" y="${svgH + 18}" text-anchor="middle" font-size="11" fill="#888">${Math.round(x)}m</text>`;
+  }
+  for (let y = 0; y <= bed.length + 0.001; y += GRID_STEP) {
+    const py = Math.round(y * SCALE);
+    const onMetre = Math.abs(y - Math.round(y)) < 0.001;
+    grid += `<line x1="0" y1="${py}" x2="${svgW}" y2="${py}" stroke="${onMetre ? '#c8c8c8' : '#e8e8e8'}" stroke-width="${onMetre ? 1.5 : 0.75}"/>`;
+    if (onMetre) grid += `<text x="-8" y="${py + 4}" text-anchor="end" font-size="11" fill="#888">${Math.round(y)}m</text>`;
+  }
+
+  // Companion / enemy lines between placed plants
+  let lines = '';
+  for (let i = 0; i < placements.length; i++) {
+    for (let j = i + 1; j < placements.length; j++) {
+      const a = placements[i], b = placements[j];
+      const { companions, enemies } = checkBedCompatibility(a.plant.name, [b.plant]);
+      const x1 = Math.round(a.cx * SCALE), y1 = Math.round(a.cy * SCALE);
+      const x2 = Math.round(b.cx * SCALE), y2 = Math.round(b.cy * SCALE);
+      if (companions.length)
+        lines += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#27ae60" stroke-width="2" stroke-dasharray="5,3" opacity="0.7"/>`;
+      else if (enemies.length)
+        lines += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#e74c3c" stroke-width="2" stroke-dasharray="5,3" opacity="0.7"/>`;
+    }
+  }
+
+  // Plant circles + labels
+  let circles = '';
+  for (const { plant, cx, cy } of placements) {
+    const px = Math.round(cx * SCALE), py = Math.round(cy * SCALE);
+    const r  = Math.round((plant.spacing / 2) * SCALE);
+    const col = colorMap[plant.name];
+    const fs1 = Math.max(9,  Math.min(13, r * 0.45));
+    const fs2 = Math.max(7,  Math.min(10, r * 0.30));
+    const tip = `${plant.name} | spacing: ${plant.spacing}m | sun: ${plant.sun} | water: ${plant.water}`;
+
+    if (r < 22) {
+      // Small circle — label below
+      circles += `<g><title>${tip}</title>
+  <circle cx="${px}" cy="${py}" r="${r}" fill="${col}" fill-opacity="0.85" stroke="white" stroke-width="2"/>
+  <text x="${px}" y="${py + r + 13}" text-anchor="middle" font-size="10" fill="#333">${plant.name}</text>
+</g>`;
+    } else {
+      // Large enough — label inside
+      circles += `<g><title>${tip}</title>
+  <circle cx="${px}" cy="${py}" r="${r}" fill="${col}" fill-opacity="0.85" stroke="white" stroke-width="2"/>
+  <text x="${px}" y="${py - 1}" text-anchor="middle" dominant-baseline="middle" font-size="${fs1}" fill="white" font-weight="600">${plant.name}</text>
+  <text x="${px}" y="${py + fs1 + 1}" text-anchor="middle" dominant-baseline="middle" font-size="${fs2}" fill="rgba(255,255,255,.85)">${plant.spacing}m</text>
+</g>`;
+    }
+  }
+
+  // Legend + key
+  const legendItems = Object.entries(colorMap).map(([name, col]) =>
+    `<span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px;margin-bottom:4px"><svg width="12" height="12"><circle cx="6" cy="6" r="6" fill="${col}"/></svg>${name}</span>`
+  ).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>${bedName} — Garden Map</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f0f4ec;min-height:100vh;padding:40px 32px}
+  h1{font-size:1.7rem;color:#2d5016;margin-bottom:6px}
+  .sub{color:#6b7a5e;font-size:.92rem;margin-bottom:28px}
+  .card{background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.09);padding:32px;display:inline-block}
+  svg text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  .legend{margin-top:20px;font-size:.85rem;color:#444;display:flex;flex-wrap:wrap;align-items:center}
+  .leg-title{font-weight:600;margin-right:12px;color:#333;flex-shrink:0}
+  .key{margin-top:14px;font-size:.78rem;color:#999;display:flex;gap:20px;flex-wrap:wrap}
+  .key span{display:flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+<h1>🌿 ${bedName}</h1>
+<p class="sub">${bed.width}m &times; ${bed.length}m &nbsp;&middot;&nbsp; ${bed.plants.length} plant${bed.plants.length !== 1 ? 's' : ''} &nbsp;&middot;&nbsp; circle diameter = spacing</p>
+<div class="card">
+  <svg width="${svgW + PAD.left + PAD.right}" height="${svgH + PAD.top + PAD.bottom}" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(${PAD.left},${PAD.top})">
+      <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="#f2f9ea" stroke="#7aac3a" stroke-width="2" rx="4"/>
+      ${grid}
+      ${lines}
+      ${circles}
+    </g>
+  </svg>
+  <div class="legend"><span class="leg-title">Plants:</span>${legendItems}</div>
+  <div class="key">
+    <span><svg width="28" height="6"><line x1="0" y1="3" x2="28" y2="3" stroke="#27ae60" stroke-width="2" stroke-dasharray="5,3"/></svg>Good companions</span>
+    <span><svg width="28" height="6"><line x1="0" y1="3" x2="28" y2="3" stroke="#e74c3c" stroke-width="2" stroke-dasharray="5,3"/></svg>Conflict</span>
+  </div>
+</div>
+</body>
+</html>`;
+
+  const outPath = path.join(__dirname, `map-${bedName.replace(/[^a-z0-9]/gi, '-')}.html`);
+  fs.writeFileSync(outPath, html);
+  console.log(`🗺️   Map saved → ${outPath}`);
+
+  const opener = process.platform === 'win32' ? `start "" "${outPath}"` :
+                 process.platform === 'darwin' ? `open "${outPath}"` : `xdg-open "${outPath}"`;
+  exec(opener, err => { if (err) console.warn('   (Could not auto-open — open the file manually)'); });
+  console.log('🌐  Opening in browser…');
+}
+
 function showHelp() {
   console.log(`
 🌱  Garden Planner CLI
@@ -384,6 +542,9 @@ Commands:
   check-bed <bed-name>
     Report all good pairings and conflicts among plants in a bed
 
+  map <bed-name>
+    Generate an HTML visual layout of a bed and open it in the browser
+
   help
     Show this help message
 
@@ -396,6 +557,7 @@ Examples:
   node garden.js list-plants "Veggie Patch"
   node garden.js companions "Tomato"
   node garden.js check-bed "Veggie Patch"
+  node garden.js map "Veggie Patch"
 
 ${'─'.repeat(50)}
 `);
@@ -448,6 +610,10 @@ switch (command) {
 
   case 'check-bed':
     checkBed(positional[0]);
+    break;
+
+  case 'map':
+    mapCmd(positional[0]);
     break;
 
   case 'help':

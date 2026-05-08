@@ -1,0 +1,11 @@
+{
+  "name": "garden-planner",
+  "version": "1.0.0",
+  "description": "A CLI app to plan and manage your garden beds",
+  "main": "garden.js",
+  "scripts": {
+    "start": "node garden.js"
+  },
+  "keywords": ["garden", "planner", "cli"],
+  "license": "MIT"
+}

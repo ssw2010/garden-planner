@@ -1,0 +1,25 @@
+{
+  "beds": {
+    "Veggie Patch": {
+      "width": 3,
+      "length": 4,
+      "plants": [
+        {
+          "name": "Basil",
+          "spacing": 0.3,
+          "sun": "full",
+          "water": "medium",
+          "addedDate": "2026-05-08"
+        },
+        {
+          "name": "Carrot",
+          "spacing": 0.15,
+          "sun": "full",
+          "water": "medium",
+          "addedDate": "2026-05-08"
+        },
+
+      ]
+    }
+  }
+}

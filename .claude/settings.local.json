@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node garden.js companions Tomato)",
+      "Bash(node garden.js companions Fennel)",
+      "Bash(node garden.js companions \"Unknown Plant\")",
+      "Bash(node garden.js check-bed \"Veggie Patch\")",
+      "Bash(node garden.js add-plant \"Tomato\" --bed \"Veggie Patch\" --spacing 0.5 --sun full --water high)",
+      "Bash(node garden.js add-plant \"Fennel\" --bed \"Veggie Patch\" --spacing 0.4 --sun full --water medium)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}

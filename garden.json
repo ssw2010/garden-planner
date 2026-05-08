@@ -18,7 +18,34 @@
           "water": "medium",
           "addedDate": "2026-05-08"
         },
-
+        {
+          "name": "Tomato",
+          "spacing": 0.5,
+          "sun": "full",
+          "water": "high",
+          "addedDate": "2026-05-08"
+        },
+        {
+          "name": "Fennel",
+          "spacing": 0.4,
+          "sun": "full",
+          "water": "medium",
+          "addedDate": "2026-05-08"
+        },
+        {
+          "name": "Garlic",
+          "spacing": 0.2,
+          "sun": "full",
+          "water": "low",
+          "addedDate": "2026-05-08"
+        },
+        {
+          "name": "Lettuce",
+          "spacing": 0.25,
+          "sun": "partial",
+          "water": "medium",
+          "addedDate": "2026-05-08"
+        }
       ]
     }
   }

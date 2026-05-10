@@ -9,7 +9,13 @@
       "Bash(node garden.js add-plant \"Fennel\" --bed \"Veggie Patch\" --spacing 0.4 --sun full --water medium)",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(node garden.js add-plant \"Garlic\" --bed \"Veggie Patch\" --spacing 0.2 --sun full --water low)",
+      "Bash(node garden.js add-plant \"Lettuce\" --bed \"Veggie Patch\" --spacing 0.25 --sun partial --water medium)",
+      "Bash(node garden.js map \"Veggie Patch\")",
+      "Bash(git commit *)"
     ]
   }
 }

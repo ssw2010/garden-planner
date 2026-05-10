@@ -4,75 +4,181 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Garden Planner Map</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: #f5f0e8; color: #2c2a1e; min-height: 100vh; padding: 24px 16px; }
-  h1 { font-family: 'Lora', serif; font-size: 26px; font-weight: 600; color: #2c2a1e; margin-bottom: 4px; }
-  .subtitle { font-size: 14px; color: #7a7560; margin-bottom: 24px; }
-  .layout { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
-  .sidebar { width: 220px; flex-shrink: 0; }
-  .sidebar-section { background: #fff; border: 1px solid #ddd8c4; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-  .sidebar-section h3 { font-family: 'Lora', serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #7a7560; margin-bottom: 12px; }
-  .bed-selector { display: flex; flex-direction: column; gap: 6px; }
-  .bed-btn { background: #f5f0e8; border: 1.5px solid #ddd8c4; border-radius: 8px; padding: 8px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #2c2a1e; cursor: pointer; text-align: left; transition: all 0.15s; }
-  .bed-btn:hover { background: #ece6d5; }
-  .bed-btn.active { background: #3b6d11; border-color: #3b6d11; color: #fff; }
-  .plant-palette { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
-  .palette-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #f5f0e8; border: 1.5px dashed #ddd8c4; border-radius: 8px; cursor: grab; font-size: 13px; transition: background 0.15s; user-select: none; }
-  .palette-item:hover { background: #ece6d5; }
-  .palette-item:active { cursor: grabbing; }
-  .canvas-wrap { flex: 1; min-width: 320px; }
-  .canvas-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .bed-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: #2c2a1e; }
-  .bed-dims { font-size: 12px; color: #7a7560; background: #ece6d5; padding: 3px 10px; border-radius: 20px; }
-  #garden-canvas { background: #e8f0d8; border: 2px solid #8faa5e; border-radius: 12px; display: block; touch-action: none; cursor: default; width: 100%; }
-  .toolbar { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-  .tool-btn { background: #fff; border: 1.5px solid #ddd8c4; border-radius: 8px; padding: 7px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #2c2a1e; cursor: pointer; transition: all 0.15s; }
-  .tool-btn:hover { background: #ece6d5; border-color: #b5aa8c; }
-  .tool-btn.danger { color: #a32d2d; border-color: #f09595; }
-  .tool-btn.danger:hover { background: #fcebeb; }
-  .tool-btn.primary { background: #3b6d11; color: #fff; border-color: #3b6d11; }
-  .tool-btn.primary:hover { background: #27500a; }
-  .info-bar { margin-top: 12px; font-size: 12px; color: #7a7560; display: flex; gap: 16px; flex-wrap: wrap; }
-  .info-item span { color: #3b6d11; font-weight: 500; }
-  .legend { display: flex; flex-wrap: wrap; gap: 8px; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5a5540; }
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #2c2a1e; color: #f5f0e8; padding: 10px 20px; border-radius: 24px; font-size: 13px; transition: transform 0.3s ease; pointer-events: none; z-index: 999; }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  @media (max-width: 600px) { .sidebar { width: 100%; } .layout { flex-direction: column; } }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f0e8; --surface: #fff; --border: #ddd8c4;
+  --green-dark: #2c3e1a; --green-mid: #3b6d11; --green-light: #e8f0d8;
+  --text: #2c2a1e; --text-muted: #7a7560;
+  --shadow: 0 2px 12px rgba(44,62,26,.10);
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px 16px; }
+h1 { font-family: 'Lora', serif; font-size: 24px; font-weight: 600; color: var(--green-dark); margin-bottom: 2px; }
+.subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+
+.layout { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
+
+/* ── SIDEBAR ── */
+.sidebar { width: 230px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
+.sidebar-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; box-shadow: var(--shadow); }
+.sidebar-section h3 { font-family: 'Lora', serif; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin-bottom: 10px; }
+
+.bed-selector { display: flex; flex-direction: column; gap: 5px; }
+.bed-btn { background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; padding: 7px 11px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text); cursor: pointer; text-align: left; transition: all .15s; }
+.bed-btn:hover { background: #ece6d5; }
+.bed-btn.active { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
+
+/* palette search */
+.palette-search { width: 100%; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px; background: var(--bg); color: var(--text); margin-bottom: 8px; outline: none; }
+.palette-search:focus { border-color: var(--green-mid); background: #fff; }
+
+/* size filter pills */
+.size-filters { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.size-pill { padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: var(--bg); color: var(--text-muted); transition: all .12s; white-space: nowrap; }
+.size-pill:hover { border-color: var(--green-mid); color: var(--green-mid); }
+.size-pill.active { background: var(--green-mid); border-color: var(--green-mid); color: #fff; }
+
+.plant-palette { display: flex; flex-direction: column; gap: 4px; max-height: 300px; overflow-y: auto; }
+.palette-item { display: flex; align-items: center; gap: 8px; padding: 6px 9px; background: var(--bg); border: 1.5px dashed var(--border); border-radius: 8px; cursor: grab; font-size: 12px; transition: background .12s; user-select: none; min-width: 0; }
+.palette-item:hover { background: #ece6d5; border-color: #b5aa8c; }
+.palette-item:active { cursor: grabbing; }
+.palette-item .plant-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.palette-item .plant-space { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+.palette-item .plant-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+.palette-empty { font-size: 12px; color: var(--text-muted); text-align: center; padding: 12px 0; font-style: italic; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #5a5540; }
+
+/* ── BED SIZE EDITOR ── */
+.bed-dims { font-size: 11px; color: var(--text-muted); background: #ece6d5; padding: 3px 10px; border-radius: 20px; cursor: pointer; transition: background .15s; }
+.bed-dims:hover { background: #ddd5be; }
+.size-editor { display: none; align-items: center; gap: 6px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 6px 10px; flex-wrap: wrap; }
+.size-editor.open { display: flex; }
+.size-editor label { font-size: 11px; color: var(--text-muted); }
+.size-editor input { width: 52px; padding: 4px 7px; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans',sans-serif; font-size: 12px; background: var(--bg); color: var(--text); outline: none; }
+.size-editor input:focus { border-color: var(--green-mid); background: #fff; }
+.size-editor .apply-btn { padding: 4px 11px; border-radius: 6px; border: none; background: var(--green-mid); color: #fff; font-family: 'DM Sans',sans-serif; font-size: 11px; cursor: pointer; }
+.size-editor .apply-btn:hover { background: #27500a; }
+.size-editor .cancel-btn { padding: 4px 9px; border-radius: 6px; border: 1.5px solid var(--border); background: transparent; font-family: 'DM Sans',sans-serif; font-size: 11px; cursor: pointer; color: var(--text-muted); }
+/* add/delete bed controls */
+.bed-controls { display: flex; gap: 5px; margin-top: 8px; }
+.bed-ctrl-btn { flex: 1; padding: 5px; border-radius: 7px; border: 1.5px solid var(--border); background: var(--bg); font-family: 'DM Sans',sans-serif; font-size: 11px; cursor: pointer; color: var(--text-muted); transition: all .13s; }
+.bed-ctrl-btn:hover { background: #ece6d5; border-color: #b5aa8c; color: var(--text); }
+.bed-ctrl-btn.del:hover { background: #fcebeb; border-color: #f09595; color: #a32d2d; }
+
+.canvas-wrap { flex: 1; min-width: 320px; }
+.canvas-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+.bed-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(--green-dark); }
+.bed-dims { font-size: 11px; color: var(--text-muted); background: #ece6d5; padding: 3px 10px; border-radius: 20px; }
+
+#garden-canvas { background: #e8f0d8; border: 2px solid #8faa5e; border-radius: 12px; display: block; touch-action: none; cursor: default; width: 100%; }
+
+.toolbar { display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap; }
+.tool-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 6px 13px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text); cursor: pointer; transition: all .15s; }
+.tool-btn:hover { background: #ece6d5; border-color: #b5aa8c; }
+.tool-btn.danger { color: #a32d2d; border-color: #f09595; }
+.tool-btn.danger:hover { background: #fcebeb; }
+.tool-btn.primary { background: var(--green-mid); color: #fff; border-color: var(--green-mid); }
+.tool-btn.primary:hover { background: #27500a; }
+
+.info-bar { margin-top: 10px; font-size: 12px; color: var(--text-muted); display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.info-item span { color: var(--green-mid); font-weight: 500; }
+
+/* tooltip */
+.plant-tooltip { position: fixed; background: var(--green-dark); color: #f0ead8; padding: 6px 11px; border-radius: 8px; font-size: 11px; pointer-events: none; z-index: 500; display: none; max-width: 200px; line-height: 1.5; }
+.plant-tooltip b { display: block; font-style: italic; }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--green-dark); color: #f5f0e8; padding: 9px 20px; border-radius: 24px; font-size: 12px; transition: transform .3s ease; pointer-events: none; z-index: 999; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── GARDEN OBJECTS ── */
+.objects-palette { display: flex; flex-direction: column; gap: 4px; }
+.object-item { display: flex; align-items: center; gap: 9px; padding: 7px 10px; background: var(--bg); border: 1.5px dashed var(--border); border-radius: 8px; cursor: grab; font-size: 12px; transition: background .12s; user-select: none; }
+.object-item:hover { background: #ece6d5; border-color: #b5aa8c; }
+.object-item:active { cursor: grabbing; }
+.object-icon { width: 28px; height: 28px; flex-shrink: 0; }
+.object-label { flex: 1; font-size: 12px; }
+.object-desc { font-size: 10px; color: var(--text-muted); }
+
+@media (max-width: 620px) { .sidebar { width: 100%; } .layout { flex-direction: column; } }
 </style>
 </head>
 <body>
 
 <h1>Garden Planner</h1>
-<p class="subtitle">Drag plants into your beds. Click to select, drag to move, double-click to remove.</p>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+  <p class="subtitle" style="margin-bottom:0">Drag BFP natives into your beds · Click to select · Double-click to remove</p>
+  <span id="data-source-badge" style="font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;flex-shrink:0"></span>
+  <button onclick="reloadFloralistData()" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0">↻ Reload from Floralist</button>
+</div>
 
 <div class="layout">
   <div class="sidebar">
+
     <div class="sidebar-section">
       <h3>Garden Beds</h3>
       <div class="bed-selector" id="bed-selector"></div>
+      <div class="bed-controls">
+        <button class="bed-ctrl-btn" onclick="addBed()">＋ Add site</button>
+        <button class="bed-ctrl-btn del" onclick="deleteBed()">✕ Delete</button>
+      </div>
     </div>
+
     <div class="sidebar-section">
-      <h3>Add Plants</h3>
+      <h3>Add Plants <span id="palette-count" style="font-weight:300;font-family:'DM Sans',sans-serif;text-transform:none;letter-spacing:0"></span></h3>
+      <input class="palette-search" id="palette-search" type="text" placeholder="Search name…" oninput="renderPalette()">
+      <div class="size-filters" id="size-filters"></div>
       <div class="plant-palette" id="plant-palette"></div>
     </div>
+
+    <div class="sidebar-section">
+      <h3>Add other garden or bushcare site items</h3>
+      <div class="objects-palette">
+        <div class="object-item" draggable="true" data-object="shed" ondragstart="e=>e.dataTransfer.setData('object','shed')" id="obj-shed">
+          <canvas class="object-icon" id="icon-shed"></canvas>
+          <div><div class="object-label">Shed</div><div class="object-desc">Storage / tool shed</div></div>
+        </div>
+        <div class="object-item" draggable="true" data-object="gazebo" id="obj-gazebo">
+          <canvas class="object-icon" id="icon-gazebo"></canvas>
+          <div><div class="object-label">Gazebo</div><div class="object-desc">Outdoor shelter</div></div>
+        </div>
+        <div class="object-item" draggable="true" data-object="house" id="obj-house">
+          <canvas class="object-icon" id="icon-house"></canvas>
+          <div><div class="object-label">House</div><div class="object-desc">Main dwelling</div></div>
+        </div>
+        <div class="object-item" draggable="true" data-object="path" id="obj-path">
+          <canvas class="object-icon" id="icon-path"></canvas>
+          <div><div class="object-label">Garden Path</div><div class="object-desc">Walkway / track</div></div>
+        </div>
+      </div>
+    </div>
+
     <div class="sidebar-section">
       <h3>Legend</h3>
       <div class="legend" id="legend"></div>
     </div>
+
   </div>
+
   <div class="canvas-wrap">
     <div class="canvas-header">
       <div class="bed-title" id="bed-title">Select a bed</div>
-      <div class="bed-dims" id="bed-dims"></div>
+      <div class="bed-dims" id="bed-dims" onclick="toggleSizeEditor()" title="Click to edit bed size"></div>
+    </div>
+    <div class="size-editor" id="size-editor">
+      <label>W:</label><input type="number" id="edit-width" min="1" max="50" step="0.5">m
+      <label>L:</label><input type="number" id="edit-length" min="1" max="50" step="0.5">m
+      <button class="apply-btn" onclick="applyBedSize()">Apply</button>
+      <button class="cancel-btn" onclick="closeSizeEditor()">Cancel</button>
     </div>
     <canvas id="garden-canvas" width="640" height="420"></canvas>
     <div class="toolbar">
       <button class="tool-btn" onclick="clearSelected()">Deselect</button>
       <button class="tool-btn danger" onclick="deleteSelected()">Remove selected</button>
-      <button class="tool-btn primary" onclick="saveLayout()">Save layout</button>
+      <button class="tool-btn primary" onclick="saveLayout()">💾 Save layout</button>
     </div>
     <div class="info-bar">
       <div class="info-item">Plants placed: <span id="plant-count">0</span></div>
@@ -81,277 +187,1027 @@
     </div>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
+<div class="plant-tooltip" id="plant-tooltip"></div>
 
 <script>
-const PLANT_DEFS = {
-  Tomato:     { color:'#d94f2a', shape:'round'  },
-  Basil:      { color:'#3a8c3a', shape:'herb'   },
-  Carrot:     { color:'#e07a20', shape:'root'   },
-  Lettuce:    { color:'#72bb3a', shape:'leafy'  },
-  Cucumber:   { color:'#3a9a55', shape:'vine'   },
-  Zucchini:   { color:'#5aaa28', shape:'vine'   },
-  Capsicum:   { color:'#cc2222', shape:'round'  },
-  Eggplant:   { color:'#7040aa', shape:'round'  },
-  Pumpkin:    { color:'#dd8010', shape:'vine'   },
-  Spinach:    { color:'#2a7a2a', shape:'leafy'  },
-  Parsley:    { color:'#44aa44', shape:'herb'   },
-  Chilli:     { color:'#bb1111', shape:'tall'   },
-  Beans:      { color:'#5a9a30', shape:'tall'   },
-  Peas:       { color:'#70bb30', shape:'vine'   },
-  Broccoli:   { color:'#2a6a2a', shape:'leafy'  },
-  Cauliflower:{ color:'#8faa44', shape:'leafy'  },
-  Onion:      { color:'#c07030', shape:'bulb'   },
-  Garlic:     { color:'#b09050', shape:'bulb'   },
-};
+// ── FLORALIST DATA — reads live from floralist.html localStorage ───────────────
+// floralist stores rows as: [botanical, commonName, shade, height, plantingSpace, status]
+// We use plantingSpace (col 4) for spacing; fall back to height (col 3) if blank.
+// If floralistData7 isn't in localStorage (floralist never opened), uses built-in fallback.
 
-function lighten(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgb(${Math.min(r+a,255)},${Math.min(g+a,255)},${Math.min(b+a,255)})`;}
-function darken(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgb(${Math.max(r-a,0)},${Math.max(g-a,0)},${Math.max(b-a,0)})`;}
-function plantColor(n){return(PLANT_DEFS[n]||{}).color||'#'+Math.floor(Math.abs(Math.sin(n.length*1234)*16777215)).toString(16).padStart(6,'0');}
+const FLORALIST_FALLBACK = [
+  ["Acacia fimbriata","Brisbane golden wattle, Fringed wattle","Full Sun",5.0,null],
+  ["Acacia leiocalyx ssp leiocalyx","Black wattle","",8.0,null],
+  ["Acacia disparrima","Hickory wattle","",15.0,null],
+  ["Acmena smithii","Lilly pilly","Full Sun",20.0,null],
+  ["Acronychia laevis","Glossy acronychia, hard aspen","",10.0,null],
+  ["Ajuga australis","Australian bugle","",0.3,null],
+  ["Allocasuarina littoralis","Black she-oak","",6.0,null],
+  ["Alphitonia excelsa","Red ash","",18.0,null],
+  ["Araucaria cunninghamii","Hoop pine","Full Sun",50.0,null],
+  ["Banksia integrifolia","Coast banksia","Full Sun",20.0,null],
+  ["Banksia spinulosa var. collina","","Full Sun",3.0,null],
+  ["Callistemon salignus","White bottlebrush","Full Sun",2.0,null],
+  ["Callistemon viminalis","River bottlebrush","Full Sun",5.0,null],
+  ["Corymbia intermedia","Pink bloodwood","",40.0,null],
+  ["Dianella caerulea var assera","Blue flax lily","Full Sun",1.0,null],
+  ["Dianella revoluta","Blue flax lily","Full Sun",1.0,null],
+  ["Eucalyptus tereticornis","Blue gum","",30.0,null],
+  ["Ficus macrophylla","Moreton Bay fig","",50.0,null],
+  ["Grevillea robusta","Silky oak","Full Sun",35.0,null],
+  ["Hardenbergia violacea","Native sarsaparilla","Partial Shade",3.0,null],
+  ["Hibbertia scandens","Twining guinea flower","Partial Shade",3.0,null],
+  ["Hymenosporum flavum","Native frangipani","",20.0,null],
+  ["Lomandra hystrix","matrush","Partial Shade",1.0,null],
+  ["Lomandra longifolia","Long-leaved matrush","Partial Shade",1.0,null],
+  ["Lophostemon confertus","Brush box","",35.0,null],
+  ["Macadamia integrifolia","Bush nut","",20.0,null],
+  ["Pandorea jasminoides","Bower vine","Full Sun",6.0,null],
+  ["Pandorea pandorana","Wonga vine","Full Sun",6.0,null],
+  ["Pittosporum undulatum","Sweet pittosporum","",25.0,null],
+  ["Podocarpus elatus","Plum pine","",40.0,null],
+  ["Viola hederacea","Native violet","Full Shade",0.15,null],
+];
 
-function drawRound(ctx,s,c){
-  ctx.beginPath();ctx.arc(0,s*.08,s*.72,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();ctx.strokeStyle=darken(c,40);ctx.lineWidth=1.5;ctx.stroke();
-  ctx.beginPath();ctx.arc(-s*.22,-s*.18,s*.18,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.28)';ctx.fill();
-  ctx.beginPath();ctx.moveTo(0,-s*.64);ctx.lineTo(0,-s*.18);ctx.strokeStyle='#4a7a20';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();
-  ctx.beginPath();ctx.ellipse(-s*.18,-s*.5,s*.2,s*.09,-.6,0,Math.PI*2);ctx.fillStyle='#5aaa28';ctx.fill();
-  ctx.beginPath();ctx.ellipse(s*.18,-s*.5,s*.2,s*.09,.6,0,Math.PI*2);ctx.fillStyle='#5aaa28';ctx.fill();
-}
-function drawLeafy(ctx,s,c){
-  for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2-Math.PI/2;ctx.save();ctx.rotate(a);ctx.beginPath();ctx.ellipse(0,-s*.48,s*.22,s*.46,0,0,Math.PI*2);ctx.fillStyle=i%2===0?c:lighten(c,28);ctx.strokeStyle=darken(c,30);ctx.lineWidth=.8;ctx.fill();ctx.stroke();ctx.restore();}
-  ctx.beginPath();ctx.arc(0,0,s*.28,0,Math.PI*2);ctx.fillStyle=lighten(c,50);ctx.fill();ctx.strokeStyle=darken(c,20);ctx.lineWidth=1;ctx.stroke();
-}
-function drawHerb(ctx,s,c){
-  ctx.beginPath();ctx.moveTo(0,s*.7);ctx.lineTo(0,s*.1);ctx.strokeStyle=darken(c,40);ctx.lineWidth=1.8;ctx.lineCap='round';ctx.stroke();
-  [{x:0,y:-s*.1,rx:s*.3,ry:s*.38,a:0},{x:-s*.34,y:s*.22,rx:s*.22,ry:s*.3,a:.5},{x:s*.34,y:s*.22,rx:s*.22,ry:s*.3,a:-.5}].forEach((cl,i)=>{ctx.beginPath();ctx.ellipse(cl.x,cl.y,cl.rx,cl.ry,cl.a,0,Math.PI*2);ctx.fillStyle=i===0?c:lighten(c,20);ctx.strokeStyle=darken(c,30);ctx.lineWidth=1;ctx.fill();ctx.stroke();});
-}
-function drawRoot(ctx,s,c){
-  ctx.beginPath();ctx.moveTo(-s*.28,-s*.3);ctx.quadraticCurveTo(-s*.28,s*.6,0,s*.82);ctx.quadraticCurveTo(s*.28,s*.6,s*.28,-s*.3);ctx.closePath();ctx.fillStyle=c;ctx.strokeStyle=darken(c,40);ctx.lineWidth=1.5;ctx.fill();ctx.stroke();
-  ctx.beginPath();ctx.moveTo(-s*.06,-s*.28);ctx.quadraticCurveTo(-s*.08,s*.3,0,s*.65);ctx.strokeStyle=lighten(c,50);ctx.lineWidth=1.5;ctx.stroke();
-  [-s*.3,-s*.05,s*.22].forEach((x,i)=>{ctx.beginPath();ctx.moveTo(x,-s*.3);ctx.quadraticCurveTo(x-s*.12*(i%2===0?1:-1),-s*.82,x+s*.08*(i%2===0?-1:1),-s*1.0);ctx.strokeStyle='#4a8a28';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();});
-}
-function drawTall(ctx,s,c){
-  ctx.beginPath();ctx.moveTo(0,s*.8);ctx.lineTo(0,-s*.4);ctx.strokeStyle='#4a7a20';ctx.lineWidth=2.2;ctx.lineCap='round';ctx.stroke();
-  [[-s*.42,-s*.1],[s*.44,s*.18],[-s*.4,s*.44]].forEach(([ex,ey])=>{
-    ctx.beginPath();ctx.moveTo(0,ey+s*.12);ctx.lineTo(ex,ey);ctx.strokeStyle='#4a7a20';ctx.lineWidth=1.5;ctx.stroke();
-    ctx.beginPath();ctx.ellipse(ex+(ex<0?-s*.16:s*.16),ey,s*.18,s*.1,ex<0?-.5:.5,0,Math.PI*2);ctx.fillStyle=c;ctx.strokeStyle=darken(c,35);ctx.lineWidth=1;ctx.fill();ctx.stroke();
-  });
-  ctx.beginPath();ctx.ellipse(-s*.22,-s*.56,s*.2,s*.32,-.5,0,Math.PI*2);ctx.fillStyle='#5aaa28';ctx.fill();
-  ctx.beginPath();ctx.ellipse(s*.22,-s*.56,s*.2,s*.32,.5,0,Math.PI*2);ctx.fillStyle='#4a9a20';ctx.fill();
-}
-function drawVine(ctx,s,c){
-  [{a:-.8,len:s*.7},{a:.8,len:s*.65},{a:2.4,len:s*.55}].forEach(v=>{
-    ctx.save();ctx.rotate(v.a);ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(s*.1,-v.len*.3,s*.3,-v.len*.5,s*.1,-v.len);ctx.strokeStyle='#5a9a28';ctx.lineWidth=1.5;ctx.lineCap='round';ctx.stroke();
-    ctx.beginPath();ctx.ellipse(s*.08,-v.len,s*.18,s*.26,.3,0,Math.PI*2);ctx.fillStyle='#72bb3a';ctx.fill();ctx.restore();
-  });
-  ctx.beginPath();ctx.ellipse(0,s*.1,s*.3,s*.2,.3,0,Math.PI*2);ctx.fillStyle=c;ctx.strokeStyle=darken(c,35);ctx.lineWidth=1.5;ctx.fill();ctx.stroke();
-}
-function drawBulb(ctx,s,c){
-  ctx.beginPath();ctx.ellipse(0,s*.38,s*.44,s*.38,0,0,Math.PI*2);ctx.fillStyle=c;ctx.strokeStyle=darken(c,35);ctx.lineWidth=1.5;ctx.fill();ctx.stroke();
-  ctx.beginPath();ctx.ellipse(0,s*.38,s*.3,s*.24,0,0,Math.PI*2);ctx.strokeStyle=lighten(c,40);ctx.lineWidth=1;ctx.stroke();
-  for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(i*s*.12,s*.72);ctx.quadraticCurveTo(i*s*.18,s*.95,i*s*.14,s*1.0);ctx.strokeStyle=darken(c,50);ctx.lineWidth=.8;ctx.stroke();}
-  [-s*.2,0,s*.2].forEach((x,i)=>{ctx.beginPath();ctx.moveTo(x,s*.06);ctx.quadraticCurveTo(x+s*.12*(i===0?-1:1),-s*.42,x+s*.06*(i===0?-1:1),-s*.78);ctx.strokeStyle='#5aaa28';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();});
-}
+function loadFloralistData() {
+  try {
+    const saved = localStorage.getItem('floralistData7');
+    if (!saved) return null;
+    const data = JSON.parse(saved);
+    const rows = data.natives && data.natives.rows;
+    if (!rows || !rows.length) return null;
 
-function drawPlantShape(ctx,name,cx,cy,r,isSelected){
-  const def=PLANT_DEFS[name]||{color:plantColor(name),shape:'herb'};
-  const s=Math.max(r*.72,10);
-  ctx.save();ctx.translate(cx,cy);
-  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=def.color+'18';ctx.fill();ctx.strokeStyle=def.color+'44';ctx.lineWidth=1;ctx.stroke();
-  if(isSelected){ctx.beginPath();ctx.arc(0,0,s+7,0,Math.PI*2);ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.setLineDash([5,4]);ctx.stroke();ctx.setLineDash([]);}
-  switch(def.shape){
-    case'round': drawRound(ctx,s,def.color);break;
-    case'leafy': drawLeafy(ctx,s,def.color);break;
-    case'herb':  drawHerb(ctx,s,def.color);break;
-    case'root':  drawRoot(ctx,s,def.color);break;
-    case'tall':  drawTall(ctx,s,def.color);break;
-    case'vine':  drawVine(ctx,s,def.color);break;
-    case'bulb':  drawBulb(ctx,s,def.color);break;
+    // Map floralist rows → [botanical, commonName, shade, plantingSpaceM]
+    // Row format: [botanical(0), commonName(1), shade(2), height(3), plantingSpace(4), status(5)]
+    return rows.map(r => {
+      const botanical     = r[0] || '';
+      const commonName    = r[1] || '';
+      const shade         = r[2] || '';
+      const plantingSpace = parseFloat(r[4]) || null;
+      return [botanical, commonName, shade, null, plantingSpace];
+    }).filter(r => r[0]); // skip blank botanical names
+  } catch(e) {
+    return null;
   }
-  ctx.fillStyle='#fff';ctx.font=`bold ${Math.min(10,Math.max(7,s*.36))}px DM Sans,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=2;ctx.fillText(name.substring(0,4),0,s*.18);ctx.shadowBlur=0;
+}
+
+// Build PLANTS array — uses planting space (col 4) only; null if not set
+// Format used throughout: [botanical, commonName, shade, spacingM]
+function buildPlants(rawRows) {
+  const seen = new Set();
+  return rawRows
+    .filter(r => { if (seen.has(r[0])) return false; seen.add(r[0]); return true; })
+    .map(r => [r[0], r[1], r[2], r[4] ? parseFloat(r[4]) : null]);
+}
+
+const floralistRaw = loadFloralistData() || FLORALIST_FALLBACK;
+let PLANTS = buildPlants(floralistRaw);
+
+// Track where data came from for the status badge
+const dataSource = loadFloralistData() ? 'floralist' : 'fallback';
+
+
+// ── SIZE CATEGORIES ───────────────────────────────────────────────────────────
+function sizeCategory(spaceM) {
+  if (!spaceM || spaceM <= 0) return 'Unknown';
+  if (spaceM <= 0.5)  return 'Groundcover';
+  if (spaceM <= 2.0)  return 'Small shrub';
+  if (spaceM <= 6.0)  return 'Large shrub';
+  if (spaceM <= 15.0) return 'Small tree';
+  return 'Large tree';
+}
+
+const SIZE_CATEGORIES = ['Groundcover','Small shrub','Large shrub','Small tree','Large tree'];
+let activeSizeFilter = '';
+
+// ── PLANT COLOUR ASSIGNMENT ───────────────────────────────────────────────────
+function hashColor(str) {
+  // Deterministic green-palette colour from name
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  const hues = [100, 115, 130, 85, 145, 70, 160, 90];
+  const hue = hues[h % hues.length];
+  const sat = 40 + (h >> 4) % 30;
+  const lit = 30 + (h >> 8) % 25;
+  return `hsl(${hue},${sat}%,${lit}%)`;
+}
+
+function shapeForSize(spaceM) {
+  if (!spaceM || spaceM <= 0.5) return 'groundcover';
+  if (spaceM <= 2.0)  return 'shrub';
+  if (spaceM <= 6.0)  return 'large-shrub';
+  if (spaceM <= 15.0) return 'tree';
+  return 'large-tree';
+}
+
+// ── DRAWING ───────────────────────────────────────────────────────────────────
+function lighten(hex,a){
+  if (hex.startsWith('hsl')) {
+    return hex.replace(/(\d+)%\)$/, m => Math.min(parseInt(m)+a, 90)+'%)');
+  }
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgb(${Math.min(r+a,255)},${Math.min(g+a,255)},${Math.min(b+a,255)})`;
+}
+function darken(hex,a){
+  if (hex.startsWith('hsl')) {
+    return hex.replace(/(\d+)%\)$/, m => Math.max(parseInt(m)-a, 5)+'%)');
+  }
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgb(${Math.max(r-a,0)},${Math.max(g-a,0)},${Math.max(b-a,0)})`;
+}
+
+function drawPlantShape(ctx, name, cx, cy, r, isSelected, color, shape) {
+  const s = Math.max(r * 0.72, 10);
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Spacing circle
+  ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
+  ctx.fillStyle = color + '18'; ctx.fill();
+  ctx.strokeStyle = color + '55'; ctx.lineWidth = 1; ctx.stroke();
+
+  if (isSelected) {
+    ctx.beginPath(); ctx.arc(0,0,s+8,0,Math.PI*2);
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2.5; ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  switch(shape) {
+    case 'groundcover': drawGroundcover(ctx, s, color); break;
+    case 'shrub':       drawShrub(ctx, s, color); break;
+    case 'large-shrub': drawLargeShrub(ctx, s, color); break;
+    case 'tree':        drawTree(ctx, s, color); break;
+    case 'large-tree':  drawLargeTree(ctx, s, color); break;
+  }
+
+  // Label
+  const label = name.substring(0,5);
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${Math.min(10, Math.max(7, s*.34))}px DM Sans,sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 3;
+  ctx.fillText(label, 0, s*.18); ctx.shadowBlur = 0;
+
   ctx.restore();
 }
 
-function drawPaletteIcon(canvas,name){
-  const c=canvas.getContext('2d');c.clearRect(0,0,24,24);c.save();c.translate(12,12);
-  const def=PLANT_DEFS[name]||{color:plantColor(name),shape:'herb'};
-  const s=8;
-  switch(def.shape){
-    case'round': c.beginPath();c.arc(0,1,s*.72,0,Math.PI*2);c.fillStyle=def.color;c.fill();c.beginPath();c.moveTo(0,-6);c.lineTo(0,-2);c.strokeStyle='#4a7a20';c.lineWidth=1.5;c.lineCap='round';c.stroke();break;
-    case'leafy': for(let i=0;i<5;i++){const a=(i/5)*Math.PI*2;c.save();c.rotate(a);c.beginPath();c.ellipse(0,-s*.5,s*.22,s*.44,0,0,Math.PI*2);c.fillStyle=i%2===0?def.color:lighten(def.color,28);c.fill();c.restore();}break;
-    case'herb': c.beginPath();c.ellipse(0,-1,s*.3,s*.42,0,0,Math.PI*2);c.fillStyle=def.color;c.fill();c.beginPath();c.ellipse(-s*.36,s*.2,s*.22,s*.3,.5,0,Math.PI*2);c.fillStyle=lighten(def.color,20);c.fill();c.beginPath();c.ellipse(s*.36,s*.2,s*.22,s*.3,-.5,0,Math.PI*2);c.fillStyle=lighten(def.color,20);c.fill();break;
-    case'root': c.beginPath();c.moveTo(-s*.3,-2);c.quadraticCurveTo(-s*.3,s*.5,0,s*.85);c.quadraticCurveTo(s*.3,s*.5,s*.3,-2);c.closePath();c.fillStyle=def.color;c.fill();c.beginPath();c.moveTo(0,-2);c.lineTo(0,-s*1.0);c.strokeStyle='#4a8a28';c.lineWidth=1.5;c.lineCap='round';c.stroke();break;
-    case'tall': c.beginPath();c.moveTo(0,s*.8);c.lineTo(0,-s*.5);c.strokeStyle='#4a7a20';c.lineWidth=2;c.lineCap='round';c.stroke();c.beginPath();c.ellipse(-s*.3,s*.1,s*.18,s*.1,-.5,0,Math.PI*2);c.fillStyle=def.color;c.fill();break;
-    case'vine': c.beginPath();c.moveTo(0,0);c.bezierCurveTo(s*.3,-s*.3,s*.6,-s*.6,s*.2,-s*.9);c.strokeStyle='#5a9a28';c.lineWidth=1.5;c.lineCap='round';c.stroke();c.beginPath();c.ellipse(0,s*.2,s*.32,s*.2,.3,0,Math.PI*2);c.fillStyle=def.color;c.fill();break;
-    case'bulb': c.beginPath();c.ellipse(0,s*.3,s*.44,s*.38,0,0,Math.PI*2);c.fillStyle=def.color;c.fill();c.beginPath();c.moveTo(0,s*.0);c.lineTo(0,-s*.85);c.strokeStyle='#5aaa28';c.lineWidth=1.8;c.lineCap='round';c.stroke();break;
+function drawGroundcover(ctx, s, c) {
+  // Low spreading rosette
+  for (let i=0;i<6;i++) {
+    const a = (i/6)*Math.PI*2;
+    ctx.save(); ctx.rotate(a);
+    ctx.beginPath(); ctx.ellipse(0,-s*.44,s*.15,s*.36,0,0,Math.PI*2);
+    ctx.fillStyle = i%2===0 ? c : lighten(c,15); ctx.fill(); ctx.restore();
+  }
+  ctx.beginPath(); ctx.arc(0,0,s*.2,0,Math.PI*2);
+  ctx.fillStyle=lighten(c,30); ctx.fill();
+}
+
+function drawShrub(ctx, s, c) {
+  // Multi-lobed shrub
+  [[0,-s*.44,s*.34],[s*.3,-s*.24,s*.28],[-s*.3,-s*.24,s*.28]].forEach(([x,y,r])=>{
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=c; ctx.strokeStyle=darken(c,25); ctx.lineWidth=1; ctx.fill(); ctx.stroke();
+  });
+  ctx.beginPath(); ctx.arc(0,s*.1,s*.4,0,Math.PI*2);
+  ctx.fillStyle=lighten(c,12); ctx.strokeStyle=darken(c,20); ctx.lineWidth=1; ctx.fill(); ctx.stroke();
+  // stem
+  ctx.beginPath(); ctx.moveTo(0,s*.5); ctx.lineTo(0,s*.8);
+  ctx.strokeStyle='#5a7a30'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.stroke();
+}
+
+function drawLargeShrub(ctx, s, c) {
+  // Fuller canopy
+  for(let i=0;i<5;i++){
+    const a=(i/5)*Math.PI*2-Math.PI/2;
+    ctx.beginPath(); ctx.arc(Math.cos(a)*s*.3, Math.sin(a)*s*.3, s*.38, 0, Math.PI*2);
+    ctx.fillStyle=i%2===0?c:lighten(c,18); ctx.strokeStyle=darken(c,22); ctx.lineWidth=1; ctx.fill(); ctx.stroke();
+  }
+  ctx.beginPath(); ctx.arc(0,0,s*.32,0,Math.PI*2);
+  ctx.fillStyle=lighten(c,25); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(0,s*.6); ctx.lineTo(0,s*.9);
+  ctx.strokeStyle='#5a7a30'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.stroke();
+}
+
+function drawTree(ctx, s, c) {
+  // Trunk
+  ctx.beginPath(); ctx.moveTo(-s*.1,s*.9); ctx.lineTo(-s*.1,-s*.05);
+  ctx.lineTo(s*.1,-s*.05); ctx.lineTo(s*.1,s*.9);
+  ctx.fillStyle='#8a6a40'; ctx.fill();
+  // Canopy layers
+  [[0,-s*.55,s*.52],[0,-s*.28,s*.62],[0,s*.02,s*.56]].forEach(([x,y,r])=>{
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=c; ctx.strokeStyle=darken(c,28); ctx.lineWidth=1.2; ctx.fill(); ctx.stroke();
+  });
+  ctx.beginPath(); ctx.arc(-s*.18,-s*.55,s*.18,0,Math.PI*2);
+  ctx.fillStyle=lighten(c,22); ctx.fill();
+}
+
+function drawLargeTree(ctx, s, c) {
+  // Thick trunk
+  ctx.beginPath(); ctx.moveTo(-s*.14,s*.95); ctx.lineTo(-s*.14,-s*.02);
+  ctx.lineTo(s*.14,-s*.02); ctx.lineTo(s*.14,s*.95);
+  ctx.fillStyle='#7a5a30'; ctx.fill();
+  // Broad canopy
+  ctx.beginPath(); ctx.arc(0,-s*.08,s*.72,0,Math.PI*2);
+  ctx.fillStyle=c; ctx.strokeStyle=darken(c,30); ctx.lineWidth=1.5; ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0,-s*.08,s*.52,0,Math.PI*2);
+  ctx.fillStyle=lighten(c,15); ctx.fill();
+  ctx.beginPath(); ctx.arc(-s*.24,-s*.28,s*.22,0,Math.PI*2);
+  ctx.fillStyle=lighten(c,28); ctx.fill();
+}
+
+function drawPaletteIcon(canvas, color, shape) {
+  const c = canvas.getContext('2d');
+  c.clearRect(0,0,24,24);
+  c.save(); c.translate(12,14);
+  const s = 7;
+  switch(shape) {
+    case 'groundcover':
+      for(let i=0;i<5;i++){const a=(i/5)*Math.PI*2;c.save();c.rotate(a);c.beginPath();c.ellipse(0,-s*.5,s*.15,s*.38,0,0,Math.PI*2);c.fillStyle=color;c.fill();c.restore();}
+      break;
+    case 'shrub':
+      c.beginPath();c.arc(0,-s*.3,s*.5,0,Math.PI*2);c.fillStyle=color;c.fill();
+      c.beginPath();c.moveTo(0,s*.22);c.lineTo(0,s*.8);c.strokeStyle='#5a7a30';c.lineWidth=1.5;c.lineCap='round';c.stroke();
+      break;
+    case 'large-shrub':
+      c.beginPath();c.arc(-s*.3,-s*.2,s*.38,0,Math.PI*2);c.fillStyle=lighten(color,15);c.fill();
+      c.beginPath();c.arc(s*.3,-s*.2,s*.38,0,Math.PI*2);c.fillStyle=lighten(color,10);c.fill();
+      c.beginPath();c.arc(0,-s*.5,s*.42,0,Math.PI*2);c.fillStyle=color;c.fill();
+      break;
+    case 'tree':
+      c.beginPath();c.moveTo(-2,s*.8);c.lineTo(-2,0);c.lineTo(2,0);c.lineTo(2,s*.8);c.fillStyle='#8a6a40';c.fill();
+      c.beginPath();c.arc(0,-s*.4,s*.6,0,Math.PI*2);c.fillStyle=color;c.fill();
+      break;
+    case 'large-tree':
+      c.beginPath();c.moveTo(-3,s*.9);c.lineTo(-3,0);c.lineTo(3,0);c.lineTo(3,s*.9);c.fillStyle='#7a5a30';c.fill();
+      c.beginPath();c.arc(0,-s*.25,s*.72,0,Math.PI*2);c.fillStyle=color;c.fill();
+      break;
   }
   c.restore();
 }
 
-let gardenData=JSON.parse(localStorage.getItem('gardenData3')||'null')||{beds:{'Veggie Patch':{width:3,length:4,plants:[{id:1,name:'Tomato',spacing:.5,sun:'full',water:'high',x:.6,y:.6},{id:2,name:'Basil',spacing:.3,sun:'full',water:'medium',x:1.4,y:.6},{id:3,name:'Carrot',spacing:.15,sun:'full',water:'medium',x:.6,y:1.6},{id:4,name:'Lettuce',spacing:.3,sun:'partial',water:'medium',x:2.0,y:1.0},{id:5,name:'Onion',spacing:.1,sun:'full',water:'medium',x:1.4,y:1.6},{id:6,name:'Beans',spacing:.15,sun:'full',water:'medium',x:2.2,y:1.8}]},'Herb Garden':{width:2,length:2,plants:[{id:7,name:'Parsley',spacing:.3,sun:'partial',water:'medium',x:.5,y:.5},{id:8,name:'Basil',spacing:.3,sun:'full',water:'medium',x:1.2,y:.5},{id:9,name:'Chilli',spacing:.4,sun:'full',water:'low',x:.6,y:1.3},{id:10,name:'Garlic',spacing:.1,sun:'full',water:'low',x:1.5,y:1.3}]}}};
+// ── GARDEN OBJECTS ────────────────────────────────────────────────────────────
+const OBJECT_DEFS = {
+  shed:   { label: 'Shed',        w: 3, h: 2, color: '#8a7060' },
+  gazebo: { label: 'Gazebo',      w: 4, h: 4, color: '#c8a060' },
+  house:  { label: 'House',       w: 8, h: 6, color: '#b07050' },
+  path:   { label: 'Garden Path', w: 1, h: 4, color: '#c8b890' },
+};
 
-let nextId=100,activeBed=null,selectedPlant=null,dragging=null,dragOffsetX=0,dragOffsetY=0,scale=80;
-const padX=44,padY=34;
-const canvas=document.getElementById('garden-canvas');
-const ctx=canvas.getContext('2d');
+let selectedObject = null;
+let draggingObj = null, objDragOX = 0, objDragOY = 0;
+let resizingObj = null, resizeHandle = null, resizeStartX = 0, resizeStartY = 0, resizeStartW = 0, resizeStartH = 0;
+const HANDLE_SIZE = 6; // px on screen
 
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function objSize(obj) {
+  const def = OBJECT_DEFS[obj.type];
+  return { w: obj.w || def.w, h: obj.h || def.h };
+}
 
-function buildSidebar(){
-  const sel=document.getElementById('bed-selector');sel.innerHTML='';
-  Object.keys(gardenData.beds).forEach(name=>{const btn=document.createElement('button');btn.className='bed-btn'+(name===activeBed?' active':'');btn.textContent=name;btn.onclick=()=>selectBed(name);sel.appendChild(btn);});
-  const pal=document.getElementById('plant-palette');pal.innerHTML='';
-  Object.keys(PLANT_DEFS).forEach(name=>{
-    const el=document.createElement('div');el.className='palette-item';el.draggable=true;el.dataset.plant=name;
-    const ic=document.createElement('canvas');ic.width=24;ic.height=24;ic.style.cssText='width:24px;height:24px;flex-shrink:0';
-    el.appendChild(ic);el.appendChild(document.createTextNode(name));
-    el.addEventListener('dragstart',e=>e.dataTransfer.setData('plant',name));
-    el.addEventListener('touchstart',handlePaletteTouchStart,{passive:false});
-    pal.appendChild(el);drawPaletteIcon(ic,name);
+function drawObject(ctx, obj, isSelected) {
+  const def = OBJECT_DEFS[obj.type];
+  if (!def) return;
+  const { w, h } = objSize(obj);
+  const [cx, cy] = bedToCanvas(obj.x, obj.y);
+  const pw = w * scale, ph = h * scale;
+  const x = cx - pw/2, y = cy - ph/2;
+
+  ctx.save();
+
+  // Shadow
+  ctx.shadowColor = 'rgba(0,0,0,.18)'; ctx.shadowBlur = 6; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
+
+  switch(obj.type) {
+    case 'shed':
+      ctx.fillStyle = def.color;
+      ctx.fillRect(x, y + ph*0.25, pw, ph*0.75);
+      ctx.beginPath();
+      ctx.moveTo(x - pw*0.05, y + ph*0.28);
+      ctx.lineTo(cx, y);
+      ctx.lineTo(x + pw*1.05, y + ph*0.28);
+      ctx.closePath();
+      ctx.fillStyle = '#6a4a30'; ctx.fill();
+      ctx.fillStyle = '#5a3a20';
+      ctx.fillRect(cx - pw*0.12, y + ph*0.6, pw*0.24, ph*0.4);
+      break;
+    case 'gazebo':
+      ctx.fillStyle = '#e8d8a0';
+      ctx.beginPath();
+      for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2-Math.PI/8;ctx.lineTo(cx+Math.cos(a)*pw/2,cy+Math.sin(a)*ph/2);}
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2-Math.PI/8;ctx.lineTo(cx+Math.cos(a)*pw/2,cy+Math.sin(a)*ph/2);}
+      ctx.closePath();
+      ctx.fillStyle = def.color + 'cc'; ctx.fill();
+      ctx.strokeStyle = '#8a6020'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, pw*0.1, 0, Math.PI*2);
+      ctx.fillStyle = '#8a6020'; ctx.fill();
+      [[-.38,-.38],[.38,-.38],[-.38,.38],[.38,.38]].forEach(([dx,dy])=>{
+        ctx.beginPath(); ctx.arc(cx+dx*pw, cy+dy*ph, pw*0.05, 0, Math.PI*2);
+        ctx.fillStyle='#d0c080'; ctx.fill();
+      });
+      break;
+    case 'house':
+      ctx.fillStyle = def.color;
+      ctx.fillRect(x, y + ph*0.3, pw, ph*0.7);
+      ctx.beginPath();
+      ctx.moveTo(x - pw*0.02, y + ph*0.33);
+      ctx.lineTo(cx, y);
+      ctx.lineTo(x + pw*1.02, y + ph*0.33);
+      ctx.closePath();
+      ctx.fillStyle = '#7a3a20'; ctx.fill();
+      ctx.fillStyle = '#a8d0e8';
+      [[-.32,.5],[.1,.5],[.32,.5]].forEach(([dx,dy])=>{
+        ctx.fillRect(cx+dx*pw-pw*0.08, y+dy*ph-ph*0.1, pw*0.16, ph*0.2);
+      });
+      ctx.fillStyle = '#5a2a10';
+      ctx.fillRect(cx - pw*0.08, y + ph*0.72, pw*0.16, ph*0.28);
+      break;
+    case 'path':
+      ctx.fillStyle = def.color;
+      ctx.beginPath(); ctx.roundRect(x, y, pw, ph, 4); ctx.fill();
+      ctx.strokeStyle = '#a89870'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.setLineDash([6,5]);
+      ctx.beginPath(); ctx.moveTo(cx, y+4); ctx.lineTo(cx, y+ph-4);
+      ctx.strokeStyle = '#fff8'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.setLineDash([]);
+      break;
+  }
+
+  ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+
+  // Label
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${Math.min(11, Math.max(8, pw*0.14))}px DM Sans,sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.shadowColor='rgba(0,0,0,.7)'; ctx.shadowBlur=3;
+  ctx.fillText(def.label, cx, cy + ph*0.1); ctx.shadowBlur=0;
+
+  // Selection outline + resize handles
+  if (isSelected) {
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+    ctx.strokeRect(x-3, y-3, pw+6, ph+6);
+    ctx.setLineDash([]);
+    // Draw corner resize handles
+    const hs = HANDLE_SIZE;
+    [[x-3, y-3],[x+pw-hs+3, y-3],[x-3, y+ph-hs+3],[x+pw-hs+3, y+ph-hs+3]].forEach(([hx,hy]) => {
+      ctx.fillStyle = '#fff'; ctx.fillRect(hx, hy, hs*2, hs*2);
+      ctx.strokeStyle = '#3b6d11'; ctx.lineWidth = 1.5; ctx.strokeRect(hx, hy, hs*2, hs*2);
+    });
+    // Size label
+    ctx.fillStyle = '#3b6d11';
+    ctx.font = '10px DM Sans,sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText(`${w}×${h}m`, x, y + ph + 5);
+  }
+
+  ctx.restore();
+}
+
+function drawObjectIcon(canvas, type) {
+  const def = OBJECT_DEFS[type]; if (!def) return;
+  const c = canvas.getContext('2d');
+  c.clearRect(0,0,28,28);
+  c.save(); c.translate(14,14);
+  const s = 9;
+  switch(type) {
+    case 'shed':
+      c.fillStyle=def.color; c.fillRect(-s,-s*.5,s*2,s*1.5);
+      c.beginPath(); c.moveTo(-s*1.1,-s*.5); c.lineTo(0,-s*1.2); c.lineTo(s*1.1,-s*.5); c.closePath();
+      c.fillStyle='#6a4a30'; c.fill();
+      break;
+    case 'gazebo':
+      c.beginPath();
+      for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2;c.lineTo(Math.cos(a)*s,Math.sin(a)*s);}
+      c.closePath(); c.fillStyle='#e8d8a0'; c.fill();
+      c.fillStyle=def.color+'bb';
+      c.beginPath();
+      for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2;c.lineTo(Math.cos(a)*s,Math.sin(a)*s);}
+      c.closePath(); c.fill();
+      c.beginPath(); c.arc(0,0,s*.2,0,Math.PI*2); c.fillStyle='#8a6020'; c.fill();
+      break;
+    case 'house':
+      c.fillStyle=def.color; c.fillRect(-s,-s*.2,s*2,s*1.2);
+      c.beginPath(); c.moveTo(-s*1.05,-s*.2); c.lineTo(0,-s*1.1); c.lineTo(s*1.05,-s*.2); c.closePath();
+      c.fillStyle='#7a3a20'; c.fill();
+      c.fillStyle='#a8d0e8'; c.fillRect(-s*.2,s*.1,s*.4,s*.5);
+      break;
+    case 'path':
+      c.fillStyle=def.color; c.beginPath(); c.roundRect(-s*.4,-s,s*.8,s*2,3); c.fill();
+      c.setLineDash([3,3]); c.beginPath(); c.moveTo(0,-s+2); c.lineTo(0,s-2);
+      c.strokeStyle='#fff8'; c.lineWidth=1.5; c.stroke(); c.setLineDash([]);
+      break;
+  }
+  c.restore();
+}
+
+// ── GARDEN DATA ───────────────────────────────────────────────────────────────
+let gardenData = JSON.parse(localStorage.getItem('gardenDataBFP3') || 'null') || {
+  beds: {
+    'Site 1': { width: 4, length: 3, plants: [] }
+  },
+  objects: []
+};
+// Ensure objects array exists on old saves
+if (!gardenData.objects) gardenData.objects = [];
+
+let nextId = 200, activeBed = null, selectedPlant = null;
+let dragging = null, dragOffsetX = 0, dragOffsetY = 0;
+let scale = 80;
+const padX = 44, padY = 34;
+
+const canvas = document.getElementById('garden-canvas');
+const ctx = canvas.getContext('2d');
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function plantDef(name) {
+  return PLANTS.find(p => p[0] === name) || [name, name, '', 1.0];
+}
+
+function displayName(p) {
+  return p[1] ? p[1].split(',')[0] : p[0].split(' ').slice(0,2).join(' ');
+}
+
+// ── SIDEBAR BUILD ─────────────────────────────────────────────────────────────
+function buildBedSelector() {
+  const sel = document.getElementById('bed-selector');
+  sel.innerHTML = '';
+  Object.keys(gardenData.beds).forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'bed-btn' + (name === activeBed ? ' active' : '');
+    btn.textContent = name;
+    btn.onclick = () => selectBed(name);
+    sel.appendChild(btn);
   });
+}
+
+function buildSizeFilters() {
+  const wrap = document.getElementById('size-filters');
+  wrap.innerHTML = '';
+  const all = document.createElement('button');
+  all.className = 'size-pill' + (!activeSizeFilter ? ' active' : '');
+  all.textContent = 'All'; all.onclick = () => { activeSizeFilter = ''; renderPalette(); buildSizeFilters(); };
+  wrap.appendChild(all);
+  SIZE_CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'size-pill' + (activeSizeFilter === cat ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = () => { activeSizeFilter = cat; renderPalette(); buildSizeFilters(); };
+    wrap.appendChild(btn);
+  });
+}
+
+function renderPalette() {
+  const q = document.getElementById('palette-search').value.toLowerCase();
+  const pal = document.getElementById('plant-palette');
+  pal.innerHTML = '';
+
+  const filtered = PLANTS.filter(p => {
+    const matchQ = !q || p[0].toLowerCase().includes(q) || (p[1] && p[1].toLowerCase().includes(q));
+    const matchS = !activeSizeFilter || sizeCategory(p[3]) === activeSizeFilter;
+    return matchQ && matchS;
+  });
+
+  document.getElementById('palette-count').textContent = `(${filtered.length})`;
+
+  if (!filtered.length) {
+    pal.innerHTML = '<div class="palette-empty">No plants match</div>';
+    return;
+  }
+
+  filtered.forEach(p => {
+    const [botanical, common, shade, space] = p;
+    const color = hashColor(botanical);
+    const shape = shapeForSize(space);
+    const label = displayName(p);
+
+    const el = document.createElement('div');
+    el.className = 'palette-item';
+    el.draggable = true;
+    el.dataset.plant = botanical;
+
+    const dot = document.createElement('div');
+    dot.className = 'plant-dot';
+    dot.style.background = color;
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'plant-name';
+    nameEl.textContent = label;
+    nameEl.title = botanical;
+
+    const spaceEl = document.createElement('span');
+    spaceEl.className = 'plant-space';
+    spaceEl.textContent = space ? space + 'm' : '—';
+
+    el.appendChild(dot);
+    el.appendChild(nameEl);
+    el.appendChild(spaceEl);
+
+    el.addEventListener('mouseenter', ev => showPlantTooltip(ev, p));
+    el.addEventListener('mousemove', ev => movePlantTooltip(ev));
+    el.addEventListener('mouseleave', hidePlantTooltip);
+    el.addEventListener('dragstart', e => e.dataTransfer.setData('plant', botanical));
+    el.addEventListener('touchstart', handlePaletteTouchStart, { passive: false });
+
+    const ic = document.createElement('canvas');
+    ic.width = 24; ic.height = 24;
+    ic.style.cssText = 'width:24px;height:24px;flex-shrink:0';
+    el.insertBefore(ic, dot);
+    drawPaletteIcon(ic, color, shape);
+
+    pal.appendChild(el);
+  });
+}
+
+function buildLegend() {
+  const leg = document.getElementById('legend');
+  leg.innerHTML = '';
+  if (!activeBed) return;
+  const seen = new Set();
+  gardenData.beds[activeBed].plants.forEach(p => {
+    if (seen.has(p.name)) return;
+    seen.add(p.name);
+    const def = plantDef(p.name);
+    const color = hashColor(p.name);
+    const shape = shapeForSize(def[3]);
+    const ic = document.createElement('canvas');
+    ic.width = 18; ic.height = 18;
+    ic.style.cssText = 'width:18px;height:18px;flex-shrink:0';
+    drawPaletteIcon(ic, color, shape);
+    const w = document.createElement('div');
+    w.className = 'legend-item';
+    w.appendChild(ic);
+    w.appendChild(document.createTextNode(displayName(def)));
+    leg.appendChild(w);
+  });
+}
+
+// ── TOOLTIP ───────────────────────────────────────────────────────────────────
+function showPlantTooltip(ev, p) {
+  const tt = document.getElementById('plant-tooltip');
+  const [botanical, common, shade, space] = p;
+  const cat = sizeCategory(space);
+  tt.innerHTML = `<b>${botanical}</b>${common ? common.split(',')[0] + '<br>' : ''}${space ? '↔ ' + space + 'm &nbsp;' : ''}${shade ? '☀ ' + shade + ' &nbsp;' : ''}${cat ? '🌿 ' + cat : ''}`;
+  tt.style.display = 'block';
+  movePlantTooltip(ev);
+}
+function movePlantTooltip(ev) {
+  const tt = document.getElementById('plant-tooltip');
+  tt.style.left = (ev.clientX + 14) + 'px';
+  tt.style.top  = (ev.clientY - 10) + 'px';
+}
+function hidePlantTooltip() {
+  document.getElementById('plant-tooltip').style.display = 'none';
+}
+
+// ── BED / CANVAS ──────────────────────────────────────────────────────────────
+function selectBed(name) {
+  activeBed = name;
+  selectedPlant = null;
+  buildBedSelector();
   buildLegend();
+  resizeCanvas();
+  draw();
+  updateInfo();
+  document.getElementById('bed-title').textContent = name;
+  const bed = gardenData.beds[name];
+  document.getElementById('bed-dims').textContent = `${bed.width}m × ${bed.length}m ✎`;
+  closeSizeEditor();
 }
 
-function buildLegend(){
-  const leg=document.getElementById('legend');leg.innerHTML='';
-  if(!activeBed)return;
-  const seen=new Set();
-  gardenData.beds[activeBed].plants.forEach(p=>{
-    if(!seen.has(p.name)){seen.add(p.name);
-      const ic=document.createElement('canvas');ic.width=18;ic.height=18;ic.style.cssText='width:18px;height:18px;flex-shrink:0';
-      drawPaletteIcon(ic,p.name);
-      const w=document.createElement('div');w.className='legend-item';w.appendChild(ic);w.appendChild(document.createTextNode(p.name));leg.appendChild(w);
-    }
+function resizeCanvas() {
+  if (!activeBed) return;
+  const bed = gardenData.beds[activeBed];
+  const availW = Math.min(canvas.parentElement.clientWidth, 720) - 20;
+  scale = Math.min(Math.floor((availW - padX*2) / bed.width), Math.floor((440 - padY*2) / bed.length));
+  scale = Math.max(scale, 40);
+  canvas.width  = bed.width  * scale + padX * 2;
+  canvas.height = bed.length * scale + padY * 2;
+}
+
+function bedToCanvas(x, y) { return [padX + x*scale, padY + y*scale]; }
+function canvasToBed(cx, cy) { return [(cx-padX)/scale, (cy-padY)/scale]; }
+
+function draw() {
+  if (!activeBed) return;
+  const bed = gardenData.beds[activeBed];
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Bed fill
+  ctx.fillStyle = '#d4e8b0';
+  ctx.beginPath(); ctx.roundRect(padX, padY, bed.width*scale, bed.length*scale, 8); ctx.fill();
+
+  // Grid
+  ctx.strokeStyle = 'rgba(100,140,60,.2)'; ctx.lineWidth = 1;
+  for (let x=0; x<=bed.width; x++) { ctx.beginPath(); ctx.moveTo(padX+x*scale,padY); ctx.lineTo(padX+x*scale,padY+bed.length*scale); ctx.stroke(); }
+  for (let y=0; y<=bed.length; y++) { ctx.beginPath(); ctx.moveTo(padX,padY+y*scale); ctx.lineTo(padX+bed.width*scale,padY+y*scale); ctx.stroke(); }
+
+  // Rulers
+  ctx.fillStyle='#7a9a50'; ctx.font='11px DM Sans,sans-serif'; ctx.textAlign='center';
+  for (let x=0; x<=bed.width; x++) ctx.fillText(x+'m', padX+x*scale, padY-10);
+  ctx.textAlign='right';
+  for (let y=0; y<=bed.length; y++) ctx.fillText(y+'m', padX-8, padY+y*scale+4);
+
+  // Plants
+  bed.plants.forEach(p => {
+    const [cx, cy] = bedToCanvas(p.x, p.y);
+    const r = Math.max((p.spacing/2)*scale, 13);
+    const def = plantDef(p.name);
+    const color = hashColor(p.name);
+    const shape = shapeForSize(def[3]);
+    drawPlantShape(ctx, displayName(def).substring(0,5), cx, cy, r, selectedPlant && selectedPlant.id === p.id, color, shape);
+  });
+
+  // Objects
+  gardenData.objects.filter(o => o.bed === activeBed).forEach(o => {
+    drawObject(ctx, o, selectedObject && selectedObject.id === o.id);
   });
 }
 
-function selectBed(name){
-  activeBed=name;selectedPlant=null;buildSidebar();resizeCanvas();draw();updateInfo();
-  document.getElementById('bed-title').textContent=name;
-  const bed=gardenData.beds[name];document.getElementById('bed-dims').textContent=`${bed.width}m × ${bed.length}m`;
-}
-
-function resizeCanvas(){
-  if(!activeBed)return;
-  const bed=gardenData.beds[activeBed];
-  const availW=Math.min(canvas.parentElement.clientWidth,700)-20;
-  scale=Math.min(Math.floor((availW-padX*2)/bed.width),Math.floor((420-padY*2)/bed.length));
-  scale=Math.max(scale,40);
-  canvas.width=bed.width*scale+padX*2;canvas.height=bed.length*scale+padY*2;
-}
-
-function bedToCanvas(x,y){return[padX+x*scale,padY+y*scale];}
-function canvasToBed(cx,cy){return[(cx-padX)/scale,(cy-padY)/scale];}
-
-function draw(){
-  if(!activeBed)return;
-  const bed=gardenData.beds[activeBed];
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='#d4e8b0';ctx.beginPath();ctx.roundRect(padX,padY,bed.width*scale,bed.length*scale,8);ctx.fill();
-  ctx.strokeStyle='rgba(100,140,60,.22)';ctx.lineWidth=1;
-  for(let x=0;x<=bed.width;x++){ctx.beginPath();ctx.moveTo(padX+x*scale,padY);ctx.lineTo(padX+x*scale,padY+bed.length*scale);ctx.stroke();}
-  for(let y=0;y<=bed.length;y++){ctx.beginPath();ctx.moveTo(padX,padY+y*scale);ctx.lineTo(padX+bed.width*scale,padY+y*scale);ctx.stroke();}
-  ctx.fillStyle='#7a9a50';ctx.font='11px DM Sans,sans-serif';ctx.textAlign='center';
-  for(let x=0;x<=bed.width;x++)ctx.fillText(x+'m',padX+x*scale,padY-10);
-  ctx.textAlign='right';for(let y=0;y<=bed.length;y++)ctx.fillText(y+'m',padX-8,padY+y*scale+4);
-  bed.plants.forEach(p=>{const[cx,cy]=bedToCanvas(p.x,p.y);const r=Math.max((p.spacing/2)*scale,13);drawPlantShape(ctx,p.name,cx,cy,r,selectedPlant&&selectedPlant.id===p.id);});
-}
-
-function plantAt(cx,cy){
-  if(!activeBed)return null;
-  const[bx,by]=canvasToBed(cx,cy);let closest=null,minDist=999;
-  gardenData.beds[activeBed].plants.forEach(p=>{const d=Math.hypot(p.x-bx,p.y-by);const h=Math.max(p.spacing/2,14/scale);if(d<h&&d<minDist){minDist=d;closest=p;}});
+// ── PLANT INTERACTION ─────────────────────────────────────────────────────────
+function plantAt(cx, cy) {
+  if (!activeBed) return null;
+  const [bx, by] = canvasToBed(cx, cy);
+  let closest = null, minDist = 999;
+  gardenData.beds[activeBed].plants.forEach(p => {
+    const d = Math.hypot(p.x-bx, p.y-by);
+    const h = Math.max(p.spacing/2, 14/scale);
+    if (d < h && d < minDist) { minDist = d; closest = p; }
+  });
   return closest;
 }
 
-function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
-function snapToBed(x,y,sp){const bed=gardenData.beds[activeBed];const h=sp/2;return[clamp(x,h,bed.width-h),clamp(y,h,bed.length-h)];}
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function snapToBed(x, y, sp) {
+  const bed = gardenData.beds[activeBed];
+  const h = sp/2;
+  return [clamp(x, h, bed.width-h), clamp(y, h, bed.length-h)];
+}
 
-function updateInfo(){
-  if(!activeBed)return;
-  const bed=gardenData.beds[activeBed];
-  const total=bed.width*bed.length;
-  const used=bed.plants.reduce((s,p)=>s+p.spacing*p.spacing,0);
-  document.getElementById('plant-count').textContent=bed.plants.length;
-  document.getElementById('free-space').textContent=Math.max(0,total-used).toFixed(2)+'m²';
-  if(selectedPlant){document.getElementById('selected-info').style.display='';document.getElementById('selected-name').textContent=`${selectedPlant.name} (${selectedPlant.spacing}m spacing)`;}
-  else document.getElementById('selected-info').style.display='none';
+function updateInfo() {
+  if (!activeBed) return;
+  const bed = gardenData.beds[activeBed];
+  const total = bed.width * bed.length;
+  const used = bed.plants.reduce((s,p) => s + p.spacing*p.spacing, 0);
+  document.getElementById('plant-count').textContent = bed.plants.length;
+  document.getElementById('free-space').textContent = Math.max(0, total-used).toFixed(1) + 'm²';
+  if (selectedPlant) {
+    document.getElementById('selected-info').style.display = '';
+    const def = plantDef(selectedPlant.name);
+    document.getElementById('selected-name').textContent = `${displayName(def)} (${selectedPlant.spacing}m spacing)`;
+  } else if (selectedObject) {
+    document.getElementById('selected-info').style.display = '';
+    const { w, h } = objSize(selectedObject);
+    document.getElementById('selected-name').textContent = `${OBJECT_DEFS[selectedObject.type]?.label} — ${w}×${h}m · drag corners to resize`;
+  } else {
+    document.getElementById('selected-info').style.display = 'none';
+  }
   buildLegend();
 }
 
-function getXY(e){const r=canvas.getBoundingClientRect();return[(e.clientX-r.left)*(canvas.width/r.width),(e.clientY-r.top)*(canvas.height/r.height)];}
+function getXY(e) {
+  const r = canvas.getBoundingClientRect();
+  return [(e.clientX-r.left)*(canvas.width/r.width), (e.clientY-r.top)*(canvas.height/r.height)];
+}
 
-canvas.addEventListener('mousedown',e=>{
-  if(!activeBed)return;const[cx,cy]=getXY(e);const p=plantAt(cx,cy);
-  if(p){const[bx,by]=canvasToBed(cx,cy);dragging=p;dragOffsetX=bx-p.x;dragOffsetY=by-p.y;selectedPlant=p;updateInfo();draw();}
-});
-canvas.addEventListener('mousemove',e=>{
-  if(!dragging)return;const[cx,cy]=getXY(e);const[bx,by]=canvasToBed(cx,cy);
-  const[nx,ny]=snapToBed(bx-dragOffsetX,by-dragOffsetY,dragging.spacing);
-  dragging.x=Math.round(nx*100)/100;dragging.y=Math.round(ny*100)/100;draw();
-});
-canvas.addEventListener('mouseup',()=>{if(dragging){saveToStorage();dragging=null;}});
-canvas.addEventListener('mouseleave',()=>{if(dragging){saveToStorage();dragging=null;}});
-canvas.addEventListener('dblclick',e=>{if(!activeBed)return;const[cx,cy]=getXY(e);const p=plantAt(cx,cy);if(p)removePlant(p.id);});
+function objectAt(cx, cy) {
+  if (!activeBed) return null;
+  const [bx, by] = canvasToBed(cx, cy);
+  return gardenData.objects.filter(o => o.bed === activeBed).find(o => {
+    const { w, h } = objSize(o);
+    return bx >= o.x - w/2 && bx <= o.x + w/2 &&
+           by >= o.y - h/2 && by <= o.y + h/2;
+  }) || null;
+}
 
-function getTXY(t){const r=canvas.getBoundingClientRect();return[(t.clientX-r.left)*(canvas.width/r.width),(t.clientY-r.top)*(canvas.height/r.height)];}
-let lastTap=0;
-canvas.addEventListener('touchstart',e=>{
-  if(!activeBed)return;e.preventDefault();const t=e.touches[0];const[cx,cy]=getTXY(t);const p=plantAt(cx,cy);const now=Date.now();
-  if(p&&now-lastTap<350){removePlant(p.id);lastTap=0;return;}lastTap=now;
-  if(p){const[bx,by]=canvasToBed(cx,cy);dragging=p;dragOffsetX=bx-p.x;dragOffsetY=by-p.y;selectedPlant=p;updateInfo();draw();}
-},{passive:false});
-canvas.addEventListener('touchmove',e=>{
-  if(!dragging)return;e.preventDefault();const t=e.touches[0];const[cx,cy]=getTXY(t);const[bx,by]=canvasToBed(cx,cy);
-  const[nx,ny]=snapToBed(bx-dragOffsetX,by-dragOffsetY,dragging.spacing);dragging.x=Math.round(nx*100)/100;dragging.y=Math.round(ny*100)/100;draw();
-},{passive:false});
-canvas.addEventListener('touchend',()=>{if(dragging){saveToStorage();dragging=null;}});
-
-canvas.addEventListener('dragover',e=>e.preventDefault());
-canvas.addEventListener('drop',e=>{
-  e.preventDefault();if(!activeBed){showToast('Select a bed first');return;}
-  const name=e.dataTransfer.getData('plant');const[cx,cy]=getXY(e);const[bx,by]=canvasToBed(cx,cy);addPlantToCanvas(name,bx,by);
-});
-
-let palDragPlant=null;
-function handlePaletteTouchStart(e){
-  e.preventDefault();palDragPlant=e.currentTarget.dataset.plant;
-  function onMove(ev){ev.preventDefault();const t=ev.touches[0];const r=canvas.getBoundingClientRect();canvas.style.boxShadow=(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom)?'0 0 0 3px #3b6d11':'';}
-  function onEnd(ev){
-    canvas.style.boxShadow='';if(!palDragPlant)return;const t=ev.changedTouches[0];const r=canvas.getBoundingClientRect();
-    if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){
-      if(!activeBed)showToast('Select a bed first');
-      else{const cx=(t.clientX-r.left)*(canvas.width/r.width);const cy=(t.clientY-r.top)*(canvas.height/r.height);const[bx,by]=canvasToBed(cx,cy);addPlantToCanvas(palDragPlant,bx,by);}
-    }
-    palDragPlant=null;document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onEnd);
+// Returns which corner handle is under cursor ('tl','tr','bl','br') or null
+function handleAt(cx, cy) {
+  if (!selectedObject) return null;
+  const { w, h } = objSize(selectedObject);
+  const [ox, oy] = bedToCanvas(selectedObject.x, selectedObject.y);
+  const pw = w * scale, ph = h * scale;
+  const x = ox - pw/2, y = oy - ph/2;
+  const hs = HANDLE_SIZE * 2;
+  const corners = { tl:[x-3,y-3], tr:[x+pw-hs+3,y-3], bl:[x-3,y+ph-hs+3], br:[x+pw-hs+3,y+ph-hs+3] };
+  for (const [name,[hx,hy]] of Object.entries(corners)) {
+    if (cx >= hx && cx <= hx+hs && cy >= hy && cy <= hy+hs) return name;
   }
-  document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onEnd);
+  return null;
 }
 
-const DEFAULT_SPACING={Tomato:.5,Basil:.3,Carrot:.15,Lettuce:.3,Cucumber:.5,Zucchini:.6,Capsicum:.45,Eggplant:.5,Pumpkin:.9,Spinach:.2,Parsley:.25,Chilli:.4,Beans:.15,Peas:.1,Broccoli:.5,Cauliflower:.6,Onion:.1,Garlic:.1};
+canvas.addEventListener('mousedown', e => {
+  if (!activeBed) return;
+  const [cx,cy] = getXY(e);
 
-function addPlantToCanvas(name,bx,by){
-  const sp=DEFAULT_SPACING[name]||.3;const bed=gardenData.beds[activeBed];
-  const[nx,ny]=snapToBed(bx,by,sp);
-  const used=bed.plants.reduce((s,p)=>s+p.spacing*p.spacing,0);
-  if(used+sp*sp>bed.width*bed.length){showToast('Not enough space!');return;}
-  const np={id:nextId++,name,spacing:sp,sun:'full',water:'medium',x:nx,y:ny};
-  bed.plants.push(np);selectedPlant=np;saveToStorage();draw();updateInfo();showToast(`${name} added!`);
+  // Check resize handles first
+  const handle = handleAt(cx, cy);
+  if (handle && selectedObject) {
+    resizingObj = selectedObject;
+    resizeHandle = handle;
+    const [bx,by] = canvasToBed(cx,cy);
+    resizeStartX = bx; resizeStartY = by;
+    resizeStartW = objSize(selectedObject).w;
+    resizeStartH = objSize(selectedObject).h;
+    return;
+  }
+
+  // Check objects
+  const obj = objectAt(cx, cy);
+  if (obj) {
+    const [bx,by] = canvasToBed(cx,cy);
+    draggingObj=obj; objDragOX=bx-obj.x; objDragOY=by-obj.y;
+    selectedObject=obj; selectedPlant=null; updateInfo(); draw(); return;
+  }
+
+  const p = plantAt(cx,cy);
+  if (p) {
+    const [bx,by] = canvasToBed(cx,cy);
+    dragging=p; dragOffsetX=bx-p.x; dragOffsetY=by-p.y;
+    selectedPlant=p; selectedObject=null; updateInfo(); draw();
+  } else {
+    selectedPlant=null; selectedObject=null; updateInfo(); draw();
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  const [cx,cy] = getXY(e);
+
+  // Update cursor near handles
+  if (selectedObject && !resizingObj && !draggingObj) {
+    const h = handleAt(cx, cy);
+    canvas.style.cursor = h ? (h==='tl'||h==='br' ? 'nwse-resize' : 'nesw-resize') : 'default';
+  }
+
+  if (resizingObj) {
+    const [bx,by] = canvasToBed(cx,cy);
+    const dx = bx - resizeStartX, dy = by - resizeStartY;
+    const MIN = 0.5;
+    const bed = gardenData.beds[activeBed];
+    let newW = resizeStartW, newH = resizeStartH;
+    if (resizeHandle === 'br') { newW = Math.max(MIN, resizeStartW + dx*2); newH = Math.max(MIN, resizeStartH + dy*2); }
+    if (resizeHandle === 'tl') { newW = Math.max(MIN, resizeStartW - dx*2); newH = Math.max(MIN, resizeStartH - dy*2); }
+    if (resizeHandle === 'tr') { newW = Math.max(MIN, resizeStartW + dx*2); newH = Math.max(MIN, resizeStartH - dy*2); }
+    if (resizeHandle === 'bl') { newW = Math.max(MIN, resizeStartW - dx*2); newH = Math.max(MIN, resizeStartH + dy*2); }
+    // Snap to 0.5m
+    resizingObj.w = Math.round(newW * 2) / 2;
+    resizingObj.h = Math.round(newH * 2) / 2;
+    draw(); return;
+  }
+
+  if (draggingObj) {
+    const [bx,by] = canvasToBed(cx,cy);
+    const { w, h } = objSize(draggingObj);
+    const bed = gardenData.beds[activeBed];
+    draggingObj.x = Math.min(Math.max(bx-objDragOX, w/2), bed.width-w/2);
+    draggingObj.y = Math.min(Math.max(by-objDragOY, h/2), bed.length-h/2);
+    draggingObj.x = Math.round(draggingObj.x*100)/100;
+    draggingObj.y = Math.round(draggingObj.y*100)/100;
+    draw(); return;
+  }
+
+  if (!dragging) return;
+  const [bx,by] = canvasToBed(cx,cy);
+  const [nx,ny] = snapToBed(bx-dragOffsetX, by-dragOffsetY, dragging.spacing);
+  dragging.x=Math.round(nx*100)/100; dragging.y=Math.round(ny*100)/100; draw();
+});
+
+canvas.addEventListener('mouseup', () => {
+  if (resizingObj) { saveToStorage(); resizingObj=null; resizeHandle=null; canvas.style.cursor='default'; }
+  if (draggingObj) { saveToStorage(); draggingObj=null; }
+  if (dragging) { saveToStorage(); dragging=null; }
+});
+canvas.addEventListener('mouseleave', () => {
+  if (resizingObj) { saveToStorage(); resizingObj=null; resizeHandle=null; canvas.style.cursor='default'; }
+  if (draggingObj) { saveToStorage(); draggingObj=null; }
+  if (dragging) { saveToStorage(); dragging=null; }
+});
+canvas.addEventListener('dblclick', e => {
+  if (!activeBed) return;
+  const [cx,cy]=getXY(e);
+  const obj = objectAt(cx,cy);
+  if (obj) { removeObject(obj.id); return; }
+  const p=plantAt(cx,cy); if(p) removePlant(p.id);
+});
+
+// Touch
+function getTXY(t) { const r=canvas.getBoundingClientRect(); return [(t.clientX-r.left)*(canvas.width/r.width),(t.clientY-r.top)*(canvas.height/r.height)]; }
+let lastTap=0;
+canvas.addEventListener('touchstart', e => {
+  if (!activeBed) return; e.preventDefault();
+  const t=e.touches[0]; const [cx,cy]=getTXY(t); const p=plantAt(cx,cy); const now=Date.now();
+  if (p&&now-lastTap<350) { removePlant(p.id); lastTap=0; return; } lastTap=now;
+  if (p) { const [bx,by]=canvasToBed(cx,cy); dragging=p; dragOffsetX=bx-p.x; dragOffsetY=by-p.y; selectedPlant=p; updateInfo(); draw(); }
+}, {passive:false});
+canvas.addEventListener('touchmove', e => {
+  if (!dragging) return; e.preventDefault();
+  const t=e.touches[0]; const [cx,cy]=getTXY(t); const [bx,by]=canvasToBed(cx,cy);
+  const [nx,ny]=snapToBed(bx-dragOffsetX,by-dragOffsetY,dragging.spacing);
+  dragging.x=Math.round(nx*100)/100; dragging.y=Math.round(ny*100)/100; draw();
+}, {passive:false});
+canvas.addEventListener('touchend', () => { if(dragging){saveToStorage();dragging=null;} });
+
+// Drag from palette (plants)
+canvas.addEventListener('dragover', e => e.preventDefault());
+canvas.addEventListener('drop', e => {
+  e.preventDefault();
+  if (!activeBed) { showToast('Select a site first'); return; }
+  const objType = e.dataTransfer.getData('object');
+  const plantName = e.dataTransfer.getData('plant');
+  const [cx,cy] = getXY(e); const [bx,by] = canvasToBed(cx,cy);
+  if (objType) { addObjectToCanvas(objType, bx, by); }
+  else if (plantName) { addPlantToCanvas(plantName, bx, by); }
+});
+
+let palDragPlant = null;
+function handlePaletteTouchStart(e) {
+  e.preventDefault();
+  palDragPlant = e.currentTarget.dataset.plant;
+  function onMove(ev) {
+    ev.preventDefault();
+    const t=ev.touches[0]; const r=canvas.getBoundingClientRect();
+    canvas.style.boxShadow=(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom)?'0 0 0 3px #3b6d11':'';
+  }
+  function onEnd(ev) {
+    canvas.style.boxShadow=''; if(!palDragPlant)return;
+    const t=ev.changedTouches[0]; const r=canvas.getBoundingClientRect();
+    if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){
+      if(!activeBed) showToast('Select a bed first');
+      else { const cx=(t.clientX-r.left)*(canvas.width/r.width); const cy=(t.clientY-r.top)*(canvas.height/r.height); const[bx,by]=canvasToBed(cx,cy); addPlantToCanvas(palDragPlant,bx,by); }
+    }
+    palDragPlant=null; document.removeEventListener('touchmove',onMove); document.removeEventListener('touchend',onEnd);
+  }
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('touchend',onEnd);
 }
 
-function removePlant(id){
-  const bed=gardenData.beds[activeBed];const p=bed.plants.find(p=>p.id===id);const name=p?p.name:'Plant';
-  bed.plants=bed.plants.filter(p=>p.id!==id);if(selectedPlant&&selectedPlant.id===id)selectedPlant=null;
-  saveToStorage();draw();updateInfo();showToast(`${name} removed`);
+function addPlantToCanvas(name, bx, by) {
+  const def = plantDef(name);
+  const sp = def[3] || 1.0;
+  const bed = gardenData.beds[activeBed];
+  const [nx,ny] = snapToBed(bx, by, sp);
+  const np = { id: nextId++, name, spacing: sp, x: nx, y: ny };
+  bed.plants.push(np);
+  selectedPlant = np;
+  saveToStorage(); draw(); updateInfo();
+  showToast(`${displayName(def)} added · ${sp}m spacing`);
 }
 
-function clearSelected(){selectedPlant=null;draw();updateInfo();}
-function deleteSelected(){if(selectedPlant)removePlant(selectedPlant.id);}
-function saveLayout(){saveToStorage();showToast('Layout saved!');}
-function saveToStorage(){localStorage.setItem('gardenData3',JSON.stringify(gardenData));}
+function removePlant(id) {
+  const bed = gardenData.beds[activeBed];
+  const p = bed.plants.find(p=>p.id===id);
+  const name = p ? displayName(plantDef(p.name)) : 'Plant';
+  bed.plants = bed.plants.filter(p=>p.id!==id);
+  if (selectedPlant && selectedPlant.id===id) selectedPlant=null;
+  saveToStorage(); draw(); updateInfo();
+  showToast(`${name} removed`);
+}
 
-window.addEventListener('resize',()=>{if(activeBed){resizeCanvas();draw();}});
-buildSidebar();
+function addObjectToCanvas(type, bx, by) {
+  if (!activeBed) { showToast('Select a site first'); return; }
+  const def = OBJECT_DEFS[type]; if (!def) return;
+  const bed = gardenData.beds[activeBed];
+  const obj = {
+    id: nextId++, type, bed: activeBed,
+    w: def.w, h: def.h,
+    x: Math.min(Math.max(bx, def.w/2), bed.width-def.w/2),
+    y: Math.min(Math.max(by, def.h/2), bed.length-def.h/2)
+  };
+  gardenData.objects.push(obj);
+  selectedObject = obj; selectedPlant = null;
+  saveToStorage(); draw(); updateInfo();
+  showToast(`${def.label} added · double-click to remove`);
+}
+
+function removeObject(id) {
+  const obj = gardenData.objects.find(o => o.id === id);
+  const label = obj ? OBJECT_DEFS[obj.type]?.label : 'Object';
+  gardenData.objects = gardenData.objects.filter(o => o.id !== id);
+  if (selectedObject && selectedObject.id === id) selectedObject = null;
+  saveToStorage(); draw(); updateInfo();
+  showToast(`${label} removed`);
+}
+
+function clearSelected() { selectedPlant=null; selectedObject=null; draw(); updateInfo(); }
+function deleteSelected() {
+  if (selectedObject) { removeObject(selectedObject.id); return; }
+  if (selectedPlant) removePlant(selectedPlant.id);
+}
+function saveLayout() { saveToStorage(); showToast('Layout saved!'); }
+function saveToStorage() { localStorage.setItem('gardenDataBFP3', JSON.stringify(gardenData)); }
+
+// ── BED SIZE EDITOR ───────────────────────────────────────────────────────────
+function toggleSizeEditor() {
+  if (!activeBed) return;
+  const editor = document.getElementById('size-editor');
+  const isOpen = editor.classList.contains('open');
+  if (isOpen) { closeSizeEditor(); return; }
+  const bed = gardenData.beds[activeBed];
+  document.getElementById('edit-width').value  = bed.width;
+  document.getElementById('edit-length').value = bed.length;
+  editor.classList.add('open');
+  document.getElementById('edit-width').focus();
+}
+
+function closeSizeEditor() {
+  document.getElementById('size-editor').classList.remove('open');
+}
+
+function applyBedSize() {
+  if (!activeBed) return;
+  const w = parseFloat(document.getElementById('edit-width').value);
+  const l = parseFloat(document.getElementById('edit-length').value);
+  if (!w || !l || w <= 0 || l <= 0 || w > 100 || l > 100) {
+    showToast('Enter valid dimensions (1–100m)'); return;
+  }
+  const bed = gardenData.beds[activeBed];
+  bed.width  = Math.round(w * 2) / 2; // snap to 0.5m
+  bed.length = Math.round(l * 2) / 2;
+  // Clamp any plants that are now outside the new boundary
+  bed.plants.forEach(p => {
+    const h = (p.spacing || 1) / 2;
+    p.x = Math.min(Math.max(p.x, h), bed.width  - h);
+    p.y = Math.min(Math.max(p.y, h), bed.length - h);
+  });
+  closeSizeEditor();
+  saveToStorage();
+  selectBed(activeBed);
+  showToast(`Bed resized to ${bed.width}m × ${bed.length}m`);
+}
+
+// ── ADD / DELETE BED ──────────────────────────────────────────────────────────
+function addBed() {
+  const name = prompt('New site name:', 'Site 2');
+  if (!name || !name.trim()) return;
+  const trimmed = name.trim();
+  if (gardenData.beds[trimmed]) { showToast('A bed with that name already exists'); return; }
+  gardenData.beds[trimmed] = { width: 4, length: 3, plants: [] };
+  saveToStorage();
+  buildBedSelector();
+  selectBed(trimmed);
+  showToast(`"${trimmed}" added — click the dims badge to resize`);
+}
+
+function deleteBed() {
+  if (!activeBed) { showToast('Select a bed first'); return; }
+  const beds = Object.keys(gardenData.beds);
+  if (beds.length === 1) { showToast('You need at least one bed'); return; }
+  if (!confirm(`Delete "${activeBed}" and all its plants?`)) return;
+  delete gardenData.beds[activeBed];
+  saveToStorage();
+  activeBed = null;
+  selectedPlant = null;
+  buildBedSelector();
+  selectBed(Object.keys(gardenData.beds)[0]);
+}
+
+window.addEventListener('resize', () => { if(activeBed){resizeCanvas();draw();} });
+
+// ── RELOAD FROM FLORALIST ─────────────────────────────────────────────────────
+function reloadFloralistData() {
+  const fresh = loadFloralistData();
+  if (!fresh) {
+    showToast('Floralist data not found — open floralist.html first');
+    return;
+  }
+  PLANTS = buildPlants(fresh);
+  updateDataBadge(true);
+  buildSizeFilters();
+  renderPalette();
+  showToast(`Loaded ${PLANTS.length} species from Floralist`);
+}
+
+function updateDataBadge(fromFloralist) {
+  const badge = document.getElementById('data-source-badge');
+  if (fromFloralist || loadFloralistData()) {
+    badge.textContent = `✓ ${PLANTS.length} species from Floralist`;
+    badge.style.cssText = 'font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;flex-shrink:0;background:#e8f0d8;color:#2a5a10;border:1px solid #b0cc80';
+  } else {
+    badge.textContent = `⚠ Using built-in data (${PLANTS.length} species)`;
+    badge.style.cssText = 'font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;flex-shrink:0;background:#fff8e0;color:#7a5a00;border:1px solid #d4b860';
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+// Draw object palette icons
+Object.keys(OBJECT_DEFS).forEach(type => {
+  const ic = document.getElementById('icon-' + type);
+  if (ic) drawObjectIcon(ic, type);
+  const el = document.getElementById('obj-' + type);
+  if (el) el.addEventListener('dragstart', e => e.dataTransfer.setData('object', type));
+});
+
+buildBedSelector();
+buildSizeFilters();
+renderPalette();
+updateDataBadge(dataSource === 'floralist');
 selectBed(Object.keys(gardenData.beds)[0]);
 </script>
 </body>

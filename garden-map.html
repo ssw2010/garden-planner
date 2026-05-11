@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Garden Planner Map</title>
+<title>Bushcare Site / Native Garden Planner</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -13,78 +13,94 @@
   --text: #2c2a1e; --text-muted: #7a7560;
   --shadow: 0 2px 12px rgba(44,62,26,.10);
 }
-body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px 16px; }
-h1 { font-family: 'Lora', serif; font-size: 24px; font-weight: 600; color: var(--green-dark); margin-bottom: 2px; }
-.subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 10px 12px; }
+h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(--green-dark); margin-bottom: 1px; }
+.subtitle { font-size: 10px; color: var(--text-muted); margin-bottom: 10px; }
 
-.layout { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
+.layout { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
 
 /* ── SIDEBAR ── */
-.sidebar { width: 230px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
-.sidebar-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; box-shadow: var(--shadow); }
-.sidebar-section h3 { font-family: 'Lora', serif; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin-bottom: 10px; }
+.sidebar { width: 190px; flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; }
+.sidebar-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; box-shadow: var(--shadow); }
+.sidebar-section h3 { font-family: 'Lora', serif; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: 6px; }
 
-.bed-selector { display: flex; flex-direction: column; gap: 5px; }
-.bed-btn { background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; padding: 7px 11px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text); cursor: pointer; text-align: left; transition: all .15s; }
+/* collapsible section */
+.sidebar-section.collapsible h3 { cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; }
+.sidebar-section.collapsible h3::after { content: '▾'; font-size: 10px; transition: transform .2s; }
+.sidebar-section.collapsible.collapsed h3::after { transform: rotate(-90deg); }
+.sidebar-section.collapsible.collapsed .section-body { display: none; }
+.section-body { margin-top: 6px; }
+
+.bed-selector { display: flex; flex-direction: column; gap: 3px; }
+.bed-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--text); cursor: pointer; text-align: left; transition: all .15s; }
 .bed-btn:hover { background: #ece6d5; }
 .bed-btn.active { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
 
 /* palette search */
-.palette-search { width: 100%; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px; background: var(--bg); color: var(--text); margin-bottom: 8px; outline: none; }
+.palette-search { width: 100%; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 11px; background: var(--bg); color: var(--text); margin-bottom: 5px; outline: none; }
 .palette-search:focus { border-color: var(--green-mid); background: #fff; }
 
 /* size filter pills */
-.size-filters { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
-.size-pill { padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: var(--bg); color: var(--text-muted); transition: all .12s; white-space: nowrap; }
+.size-filters { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 5px; }
+.size-pill { padding: 2px 6px; border-radius: 20px; font-size: 9px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); transition: all .12s; white-space: nowrap; }
 .size-pill:hover { border-color: var(--green-mid); color: var(--green-mid); }
 .size-pill.active { background: var(--green-mid); border-color: var(--green-mid); color: #fff; }
 
-.plant-palette { display: flex; flex-direction: column; gap: 4px; max-height: 300px; overflow-y: auto; }
-.palette-item { display: flex; align-items: center; gap: 8px; padding: 6px 9px; background: var(--bg); border: 1.5px dashed var(--border); border-radius: 8px; cursor: grab; font-size: 12px; transition: background .12s; user-select: none; min-width: 0; }
+.plant-palette { display: flex; flex-direction: column; gap: 2px; max-height: 220px; overflow-y: auto; }
+.palette-item { display: flex; align-items: center; gap: 5px; padding: 4px 6px; background: var(--bg); border: 1px dashed var(--border); border-radius: 6px; cursor: grab; font-size: 11px; transition: background .12s; user-select: none; min-width: 0; }
 .palette-item:hover { background: #ece6d5; border-color: #b5aa8c; }
 .palette-item:active { cursor: grabbing; }
-.palette-item .plant-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.palette-item .plant-space { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
-.palette-item .plant-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.palette-item .plant-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+.palette-item .plant-space { font-size: 9px; color: var(--text-muted); flex-shrink: 0; }
+.palette-item .plant-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-.palette-empty { font-size: 12px; color: var(--text-muted); text-align: center; padding: 12px 0; font-style: italic; }
+.palette-empty { font-size: 11px; color: var(--text-muted); text-align: center; padding: 8px 0; font-style: italic; }
 
-.legend { display: flex; flex-wrap: wrap; gap: 6px; }
-.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #5a5540; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #5a5540; }
+
+/* ── IMAGE UPLOAD ── */
+.img-upload-wrap { margin-top: 7px; border-top: 1px solid var(--border); padding-top: 7px; }
+.img-upload-label { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-muted); cursor: pointer; padding: 4px 6px; border: 1px dashed var(--border); border-radius: 6px; transition: background .13s; }
+.img-upload-label:hover { background: #ece6d5; border-color: #b5aa8c; }
+.img-upload-label input { display: none; }
+.img-preview { width: 100%; height: 48px; object-fit: cover; border-radius: 5px; margin-top: 4px; border: 1px solid var(--border); display: none; }
+.img-controls { display: none; align-items: center; gap: 4px; margin-top: 4px; font-size: 10px; color: var(--text-muted); }
+.img-controls input[type=range] { flex: 1; }
+.img-remove { background: none; border: none; font-size: 10px; color: #c94040; cursor: pointer; padding: 0; text-decoration: underline; }
 
 /* ── BED SIZE EDITOR ── */
-.bed-dims { font-size: 11px; color: var(--text-muted); background: #ece6d5; padding: 3px 10px; border-radius: 20px; cursor: pointer; transition: background .15s; }
+.bed-dims { font-size: 10px; color: var(--text-muted); background: #ece6d5; padding: 2px 8px; border-radius: 20px; cursor: pointer; transition: background .15s; }
 .bed-dims:hover { background: #ddd5be; }
-.size-editor { display: none; align-items: center; gap: 6px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 6px 10px; flex-wrap: wrap; }
+.size-editor { display: none; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 5px 8px; flex-wrap: wrap; }
 .size-editor.open { display: flex; }
-.size-editor label { font-size: 11px; color: var(--text-muted); }
-.size-editor input { width: 52px; padding: 4px 7px; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans',sans-serif; font-size: 12px; background: var(--bg); color: var(--text); outline: none; }
+.size-editor label { font-size: 10px; color: var(--text-muted); }
+.size-editor input { width: 46px; padding: 3px 5px; border: 1px solid var(--border); border-radius: 5px; font-family: 'DM Sans',sans-serif; font-size: 11px; background: var(--bg); color: var(--text); outline: none; }
 .size-editor input:focus { border-color: var(--green-mid); background: #fff; }
-.size-editor .apply-btn { padding: 4px 11px; border-radius: 6px; border: none; background: var(--green-mid); color: #fff; font-family: 'DM Sans',sans-serif; font-size: 11px; cursor: pointer; }
+.size-editor .apply-btn { padding: 3px 9px; border-radius: 5px; border: none; background: var(--green-mid); color: #fff; font-family: 'DM Sans',sans-serif; font-size: 10px; cursor: pointer; }
 .size-editor .apply-btn:hover { background: #27500a; }
-.size-editor .cancel-btn { padding: 4px 9px; border-radius: 6px; border: 1.5px solid var(--border); background: transparent; font-family: 'DM Sans',sans-serif; font-size: 11px; cursor: pointer; color: var(--text-muted); }
+.size-editor .cancel-btn { padding: 3px 7px; border-radius: 5px; border: 1px solid var(--border); background: transparent; font-family: 'DM Sans',sans-serif; font-size: 10px; cursor: pointer; color: var(--text-muted); }
 /* add/delete bed controls */
-.bed-controls { display: flex; gap: 5px; margin-top: 8px; }
-.bed-ctrl-btn { flex: 1; padding: 5px; border-radius: 7px; border: 1.5px solid var(--border); background: var(--bg); font-family: 'DM Sans',sans-serif; font-size: 11px; cursor: pointer; color: var(--text-muted); transition: all .13s; }
+.bed-controls { display: flex; gap: 4px; margin-top: 6px; }
+.bed-ctrl-btn { flex: 1; padding: 3px; border-radius: 5px; border: 1px solid var(--border); background: var(--bg); font-family: 'DM Sans',sans-serif; font-size: 10px; cursor: pointer; color: var(--text-muted); transition: all .13s; }
 .bed-ctrl-btn:hover { background: #ece6d5; border-color: #b5aa8c; color: var(--text); }
 .bed-ctrl-btn.del:hover { background: #fcebeb; border-color: #f09595; color: #a32d2d; }
 
-.canvas-wrap { flex: 1; min-width: 320px; }
-.canvas-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
-.bed-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(--green-dark); }
-.bed-dims { font-size: 11px; color: var(--text-muted); background: #ece6d5; padding: 3px 10px; border-radius: 20px; }
+.canvas-wrap { flex: 1; min-width: 280px; }
+.canvas-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 4px; }
+.bed-title { font-family: 'Lora', serif; font-size: 15px; font-weight: 600; color: var(--green-dark); }
 
-#garden-canvas { background: #e8f0d8; border: 2px solid #8faa5e; border-radius: 12px; display: block; touch-action: none; cursor: default; width: 100%; }
+#garden-canvas { background: #e8f0d8; border: 2px solid #8faa5e; border-radius: 10px; display: block; touch-action: none; cursor: default; width: 100%; }
 
-.toolbar { display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap; }
-.tool-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 6px 13px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text); cursor: pointer; transition: all .15s; }
+.toolbar { display: flex; gap: 5px; margin-top: 7px; flex-wrap: wrap; }
+.tool-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--text); cursor: pointer; transition: all .15s; }
 .tool-btn:hover { background: #ece6d5; border-color: #b5aa8c; }
 .tool-btn.danger { color: #a32d2d; border-color: #f09595; }
 .tool-btn.danger:hover { background: #fcebeb; }
 .tool-btn.primary { background: var(--green-mid); color: #fff; border-color: var(--green-mid); }
 .tool-btn.primary:hover { background: #27500a; }
 
-.info-bar { margin-top: 10px; font-size: 12px; color: var(--text-muted); display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.info-bar { margin-top: 7px; font-size: 11px; color: var(--text-muted); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .info-item span { color: var(--green-mid); font-weight: 500; }
 
 /* tooltip */
@@ -94,38 +110,118 @@ h1 { font-family: 'Lora', serif; font-size: 24px; font-weight: 600; color: var(-
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--green-dark); color: #f5f0e8; padding: 9px 20px; border-radius: 24px; font-size: 12px; transition: transform .3s ease; pointer-events: none; z-index: 999; white-space: nowrap; }
 .toast.show { transform: translateX(-50%) translateY(0); }
 
+/* ── HELP MODAL ── */
+.help-btn { position: fixed; top: 16px; right: 16px; z-index: 300; width: 34px; height: 34px; border-radius: 50%; background: var(--green-dark); color: #f0ead8; border: none; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.25); transition: background .15s; font-family: 'Lora',serif; }
+.help-btn:hover { background: var(--green-mid); }
+.help-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 400; align-items: center; justify-content: center; padding: 20px; }
+.help-overlay.show { display: flex; }
+.help-modal { background: var(--surface); border-radius: 16px; padding: 28px 28px 24px; box-shadow: 0 8px 40px rgba(0,0,0,.25); max-width: 520px; width: 100%; max-height: 85vh; overflow-y: auto; position: relative; }
+.help-modal h2 { font-family: 'Lora',serif; font-size: 18px; color: var(--green-dark); margin-bottom: 16px; }
+.help-modal h3 { font-family: 'Lora',serif; font-size: 13px; font-weight: 600; color: var(--green-mid); margin: 16px 0 6px; }
+.help-modal p, .help-modal li { font-size: 13px; color: var(--text); line-height: 1.6; }
+.help-modal ol, .help-modal ul { padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.help-modal code { background: var(--green-light); color: var(--green-dark); padding: 1px 5px; border-radius: 4px; font-size: 12px; font-family: monospace; }
+.help-close { position: absolute; top: 14px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); line-height: 1; }
+.help-close:hover { color: var(--text); }
+.help-divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
 /* ── GARDEN OBJECTS ── */
-.objects-palette { display: flex; flex-direction: column; gap: 4px; }
-.object-item { display: flex; align-items: center; gap: 9px; padding: 7px 10px; background: var(--bg); border: 1.5px dashed var(--border); border-radius: 8px; cursor: grab; font-size: 12px; transition: background .12s; user-select: none; }
+.objects-palette { display: flex; flex-direction: column; gap: 3px; }
+.object-item { display: flex; align-items: center; gap: 6px; padding: 4px 7px; background: var(--bg); border: 1px dashed var(--border); border-radius: 6px; cursor: grab; font-size: 11px; transition: background .12s; user-select: none; }
 .object-item:hover { background: #ece6d5; border-color: #b5aa8c; }
 .object-item:active { cursor: grabbing; }
-.object-icon { width: 28px; height: 28px; flex-shrink: 0; }
-.object-label { flex: 1; font-size: 12px; }
-.object-desc { font-size: 10px; color: var(--text-muted); }
+.object-icon { width: 22px; height: 22px; flex-shrink: 0; }
+.object-label { font-size: 10px; font-weight: 500; }
+.object-desc { font-size: 9px; color: var(--text-muted); }
 
 @media (max-width: 620px) { .sidebar { width: 100%; } .layout { flex-direction: column; } }
 </style>
 </head>
 <body>
 
-<h1>Garden Planner</h1>
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+<button class="help-btn" onclick="document.getElementById('help-overlay').classList.add('show')" title="Help">?</button>
+
+<div class="help-overlay" id="help-overlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="help-modal">
+    <button class="help-close" onclick="document.getElementById('help-overlay').classList.remove('show')">✕</button>
+    <h2>Garden Planner Help</h2>
+
+    <h3>🌿 General</h3>
+    <ul>
+      <li>Drag a plant from the <strong>Add Plants</strong> panel onto the canvas to place it.</li>
+      <li>Click a plant or object to <strong>select</strong> it.</li>
+      <li>Drag a selected item to <strong>move</strong> it.</li>
+      <li>Double-click a plant or object to <strong>remove</strong> it.</li>
+    </ul>
+
+    <hr class="help-divider">
+    <h3>🛖 Other site items (Shed, Gazebo, House)</h3>
+    <ul>
+      <li>Drag from the <strong>Add other garden or bushcare site items</strong> panel onto the canvas.</li>
+      <li>Click to select — white corner handles appear.</li>
+      <li>Drag a corner handle to <strong>resize</strong> (snaps to 0.25m).</li>
+      <li>Double-click to remove.</li>
+    </ul>
+
+    <hr class="help-divider">
+    <h3>🛤️ Garden Path &amp; 💧 Waterway</h3>
+    <p><strong>Creating a path:</strong></p>
+    <ol>
+      <li>Drag <strong>Garden Path</strong> from the sidebar onto the canvas — it drops the first waypoint and enters drawing mode.</li>
+      <li>Click anywhere on the canvas to add more waypoints — the path curves smoothly through them.</li>
+      <li>Press <code>Escape</code> or click <strong>✓ Done adding points</strong> in the toolbar to finish.</li>
+    </ol>
+    <p style="margin-top:10px"><strong>Editing a path:</strong></p>
+    <ul>
+      <li>Click the path to select it — numbered waypoint handles appear.</li>
+      <li>Drag any numbered handle to reshape the curve.</li>
+      <li>Double-click a waypoint to remove it.</li>
+      <li>Click <strong>＋ Add points</strong> in the toolbar to resume adding waypoints.</li>
+    </ul>
+    <p style="margin-top:10px"><strong>Path width:</strong></p>
+    <ul>
+      <li>A <strong>Width slider</strong> appears in the toolbar when a path is selected (0.125m – 2m, in 0.125m steps).</li>
+    </ul>
+    <p style="margin-top:10px"><strong>Removing a path:</strong></p>
+    <ul>
+      <li>Double-click on the path line, or select it and click <strong>Remove selected</strong>.</li>
+    </ul>
+
+    <hr class="help-divider">
+    <h3>📷 Site image</h3>
+    <ul>
+      <li>Click the <strong>dimensions badge</strong> (e.g. <code>4m × 3m ✎</code>) to open the size editor.</li>
+      <li>Click <strong>Upload site image</strong> to load an aerial photo or map of your site.</li>
+      <li>Set the real-world <strong>Width</strong> and <strong>Length</strong> in metres, then click <strong>Apply</strong> — the canvas rescales to match.</li>
+      <li>Use the <strong>Opacity slider</strong> to adjust how strongly the image shows through the grid.</li>
+      <li>Click <strong>✕ Remove</strong> to clear the image.</li>
+    </ul>
+
+    <hr class="help-divider">
+    <h3>🌱 Floralist data</h3>
+    <ul>
+      <li>Open <strong>floralist.html</strong> in the same browser, fill in <em>Planting Space (m)</em> values and click 💾 Save.</li>
+      <li>Click <strong>↻ Reload from Floralist</strong> in the header to pull updated spacing into the map.</li>
+    </ul>
+
+    <hr class="help-divider">
+    <h3>💾 Saving</h3>
+    <ul>
+      <li>Click <strong>💾 Save layout</strong> to save everything to your browser's local storage.</li>
+      <li>Your layout reloads automatically next time you open the file in the same browser.</li>
+    </ul>
+  </div>
+</div>
+
+<h1>Bushcare Site / Native Garden Planner</h1>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
   <p class="subtitle" style="margin-bottom:0">Drag BFP natives into your beds · Click to select · Double-click to remove</p>
-  <span id="data-source-badge" style="font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;flex-shrink:0"></span>
-  <button onclick="reloadFloralistData()" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0">↻ Reload from Floralist</button>
+  <span id="data-source-badge" style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;flex-shrink:0"></span>
+  <button onclick="reloadFloralistData()" style="font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0">↻ Reload Floralist</button>
 </div>
 
 <div class="layout">
   <div class="sidebar">
-
-    <div class="sidebar-section">
-      <h3>Garden Beds</h3>
-      <div class="bed-selector" id="bed-selector"></div>
-      <div class="bed-controls">
-        <button class="bed-ctrl-btn" onclick="addBed()">＋ Add site</button>
-        <button class="bed-ctrl-btn del" onclick="deleteBed()">✕ Delete</button>
-      </div>
-    </div>
 
     <div class="sidebar-section">
       <h3>Add Plants <span id="palette-count" style="font-weight:300;font-family:'DM Sans',sans-serif;text-transform:none;letter-spacing:0"></span></h3>
@@ -134,8 +230,9 @@ h1 { font-family: 'Lora', serif; font-size: 24px; font-weight: 600; color: var(-
       <div class="plant-palette" id="plant-palette"></div>
     </div>
 
-    <div class="sidebar-section">
-      <h3>Add other garden or bushcare site items</h3>
+    <div class="sidebar-section collapsible collapsed" id="section-objects">
+      <h3 onclick="toggleSection('section-objects')">Site items</h3>
+      <div class="section-body">
       <div class="objects-palette">
         <div class="object-item" draggable="true" data-object="shed" ondragstart="e=>e.dataTransfer.setData('object','shed')" id="obj-shed">
           <canvas class="object-icon" id="icon-shed"></canvas>
@@ -153,12 +250,23 @@ h1 { font-family: 'Lora', serif; font-size: 24px; font-weight: 600; color: var(-
           <canvas class="object-icon" id="icon-path"></canvas>
           <div><div class="object-label">Garden Path</div><div class="object-desc">Walkway / track</div></div>
         </div>
+        <div class="object-item" draggable="true" data-object="waterway" id="obj-waterway">
+          <canvas class="object-icon" id="icon-waterway"></canvas>
+          <div><div class="object-label">Waterway</div><div class="object-desc">Creek / stream / drain</div></div>
+        </div>
+        <div class="object-item" draggable="true" data-object="pond_dam" id="obj-pond_dam">
+          <canvas class="object-icon" id="icon-pond_dam"></canvas>
+          <div><div class="object-label">Pond / Lake</div><div class="object-desc">Dam / pond / wetland</div></div>
+        </div>
       </div>
+      </div><!-- end section-body -->
     </div>
 
-    <div class="sidebar-section">
-      <h3>Legend</h3>
-      <div class="legend" id="legend"></div>
+    <div class="sidebar-section collapsible collapsed" id="section-legend">
+      <h3 onclick="toggleSection('section-legend')">Legend</h3>
+      <div class="section-body">
+        <div class="legend" id="legend"></div>
+      </div>
     </div>
 
   </div>
@@ -169,15 +277,34 @@ h1 { font-family: 'Lora', serif; font-size: 24px; font-weight: 600; color: var(-
       <div class="bed-dims" id="bed-dims" onclick="toggleSizeEditor()" title="Click to edit bed size"></div>
     </div>
     <div class="size-editor" id="size-editor">
-      <label>W:</label><input type="number" id="edit-width" min="1" max="50" step="0.5">m
-      <label>L:</label><input type="number" id="edit-length" min="1" max="50" step="0.5">m
+      <label>W:</label><input type="number" id="edit-width" min="1" max="250" step="0.5">m
+      <label>L:</label><input type="number" id="edit-length" min="1" max="250" step="0.5">m
       <button class="apply-btn" onclick="applyBedSize()">Apply</button>
       <button class="cancel-btn" onclick="closeSizeEditor()">Cancel</button>
+      <div class="img-upload-wrap" style="width:100%">
+        <label class="img-upload-label">
+          📷 Upload site image (aerial / photo)
+          <input type="file" accept="image/*" onchange="handleImageUpload(event)">
+        </label>
+        <img id="img-preview" class="img-preview">
+        <div class="img-controls" id="img-controls">
+          <span>Opacity:</span>
+          <input type="range" id="img-opacity" min="0.05" max="1" step="0.05" value="0.45" oninput="updateImageOpacity(this.value)">
+          <span id="img-opacity-label">45%</span>
+          <button class="img-remove" onclick="removeImage()">✕ Remove</button>
+        </div>
+      </div>
     </div>
     <canvas id="garden-canvas" width="640" height="420"></canvas>
     <div class="toolbar">
       <button class="tool-btn" onclick="clearSelected()">Deselect</button>
       <button class="tool-btn danger" onclick="deleteSelected()">Remove selected</button>
+      <button class="tool-btn" id="path-draw-btn" style="display:none" onclick="togglePathDrawingMode()">＋ Add points</button>
+      <span id="path-width-wrap" style="display:none;align-items:center;gap:5px;font-size:12px;color:var(--text-muted)">
+        Width: <input type="range" id="path-width-val" min="0.125" max="2" step="0.125" value="0.5" style="width:70px" oninput="updatePathWidth(this.value)">
+        <span id="path-width-label">0.5m</span>
+      </span>
+      <button class="tool-btn danger" onclick="clearAll()">🗑 Clear all</button>
       <button class="tool-btn primary" onclick="saveLayout()">💾 Save layout</button>
     </div>
     <div class="info-bar">
@@ -450,10 +577,12 @@ function drawPaletteIcon(canvas, color, shape) {
 
 // ── GARDEN OBJECTS ────────────────────────────────────────────────────────────
 const OBJECT_DEFS = {
-  shed:   { label: 'Shed',        w: 3, h: 2, color: '#8a7060' },
-  gazebo: { label: 'Gazebo',      w: 4, h: 4, color: '#c8a060' },
-  house:  { label: 'House',       w: 8, h: 6, color: '#b07050' },
-  path:   { label: 'Garden Path', w: 1, h: 4, color: '#c8b890' },
+  shed:      { label: 'Shed',        w: 3,  h: 2, color: '#8a7060' },
+  gazebo:    { label: 'Gazebo',      w: 4,  h: 4, color: '#c8a060' },
+  house:     { label: 'House',       w: 8,  h: 6, color: '#b07050' },
+  path:      { label: 'Garden Path', w: 1,  h: 4, color: '#c8b890' },
+  waterway:  { label: 'Waterway',    w: 1,  h: 4, color: '#4a90c4' },
+  pond_dam:  { label: 'Pond/Lake',   w: 6,  h: 6, color: '#2a6496' },
 };
 
 let selectedObject = null;
@@ -467,6 +596,9 @@ function objSize(obj) {
 }
 
 function drawObject(ctx, obj, isSelected) {
+  // Curved path and waterway have their own drawing function
+  if (obj.type === 'path' || obj.type === 'waterway') { drawCurvedPath(ctx, obj, isSelected); return; }
+
   const def = OBJECT_DEFS[obj.type];
   if (!def) return;
   const { w, h } = objSize(obj);
@@ -534,7 +666,28 @@ function drawObject(ctx, obj, isSelected) {
       ctx.strokeStyle = '#fff8'; ctx.lineWidth = 1.5; ctx.stroke();
       ctx.setLineDash([]);
       break;
-  }
+    case 'pond_dam': {
+      const rx = pw / 2, ry = ph / 2;
+      // Outer bank (dark edge)
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2);
+      ctx.fillStyle = '#1a3a5a'; ctx.fill();
+      // Deep water
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx*0.92, ry*0.92, 0, 0, Math.PI*2);
+      ctx.fillStyle = '#2a6496'; ctx.fill();
+      // Mid water
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx*0.7, ry*0.7, 0, 0, Math.PI*2);
+      ctx.fillStyle = '#4a8ab8'; ctx.fill();
+      // Highlight shimmer
+      ctx.beginPath(); ctx.ellipse(cx - rx*0.22, cy - ry*0.22, rx*0.28, ry*0.18, -Math.PI/5, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(180,220,255,0.35)'; ctx.fill();
+      // Ripple rings
+      [0.55, 0.38].forEach(r => {
+        ctx.beginPath(); ctx.ellipse(cx, cy, rx*r, ry*r, 0, 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(120,190,240,0.3)'; ctx.lineWidth = 1.5; ctx.stroke();
+      });
+      break;
+    }
+  } // end switch
 
   ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
 
@@ -547,9 +700,15 @@ function drawObject(ctx, obj, isSelected) {
 
   // Selection outline + resize handles
   if (isSelected) {
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
-    ctx.strokeRect(x-3, y-3, pw+6, ph+6);
-    ctx.setLineDash([]);
+    if (obj.type === 'pond_dam') {
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+      ctx.beginPath(); ctx.ellipse(cx, cy, pw/2+4, ph/2+4, 0, 0, Math.PI*2); ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+      ctx.strokeRect(x-3, y-3, pw+6, ph+6);
+      ctx.setLineDash([]);
+    }
     // Draw corner resize handles
     const hs = HANDLE_SIZE;
     [[x-3, y-3],[x+pw-hs+3, y-3],[x-3, y+ph-hs+3],[x+pw-hs+3, y+ph-hs+3]].forEach(([hx,hy]) => {
@@ -595,15 +754,215 @@ function drawObjectIcon(canvas, type) {
       c.fillStyle='#a8d0e8'; c.fillRect(-s*.2,s*.1,s*.4,s*.5);
       break;
     case 'path':
-      c.fillStyle=def.color; c.beginPath(); c.roundRect(-s*.4,-s,s*.8,s*2,3); c.fill();
-      c.setLineDash([3,3]); c.beginPath(); c.moveTo(0,-s+2); c.lineTo(0,s-2);
-      c.strokeStyle='#fff8'; c.lineWidth=1.5; c.stroke(); c.setLineDash([]);
+      c.strokeStyle=def.color; c.lineWidth=4; c.lineCap='round';
+      c.beginPath(); c.moveTo(-s,-s*.5); c.bezierCurveTo(-s*.2,s,s*.2,-s,s,s*.5); c.stroke();
+      c.strokeStyle='rgba(255,255,255,0.6)'; c.lineWidth=1.5; c.setLineDash([3,3]);
+      c.beginPath(); c.moveTo(-s,-s*.5); c.bezierCurveTo(-s*.2,s,s*.2,-s,s,s*.5); c.stroke(); c.setLineDash([]);
+      break;
+    case 'waterway':
+      c.strokeStyle='#2a6496'; c.lineWidth=5; c.lineCap='round';
+      c.beginPath(); c.moveTo(-s,-s*.5); c.bezierCurveTo(-s*.2,s,s*.2,-s,s,s*.5); c.stroke();
+      c.strokeStyle='#5ba3d4'; c.lineWidth=3;
+      c.beginPath(); c.moveTo(-s,-s*.5); c.bezierCurveTo(-s*.2,s,s*.2,-s,s,s*.5); c.stroke();
+      c.setLineDash([2,3]); c.strokeStyle='rgba(180,220,255,0.8)'; c.lineWidth=1.2;
+      c.beginPath(); c.moveTo(-s,-s*.5); c.bezierCurveTo(-s*.2,s,s*.2,-s,s,s*.5); c.stroke(); c.setLineDash([]);
+      break;
+    case 'pond_dam':
+      c.beginPath(); c.ellipse(0,0,s,s*.75,0,0,Math.PI*2);
+      c.fillStyle='#1a3a5a'; c.fill();
+      c.beginPath(); c.ellipse(0,0,s*.88,s*.66,0,0,Math.PI*2);
+      c.fillStyle='#2a6496'; c.fill();
+      c.beginPath(); c.ellipse(0,0,s*.62,s*.46,0,0,Math.PI*2);
+      c.fillStyle='#4a8ab8'; c.fill();
+      c.beginPath(); c.ellipse(-s*.2,-s*.2,s*.24,s*.15,-Math.PI/5,0,Math.PI*2);
+      c.fillStyle='rgba(180,220,255,0.45)'; c.fill();
       break;
   }
   c.restore();
 }
 
-// ── GARDEN DATA ───────────────────────────────────────────────────────────────
+// ── CURVED PATH DRAWING ───────────────────────────────────────────────────────
+let pathDrawingMode = false; // when true, clicks add waypoints to selected path
+let draggingWaypoint = null, waypointIdx = -1;
+
+function catmullRomPoints(pts, tension = 0.5, segments = 16) {
+  // Returns array of canvas [x,y] points for a smooth curve through pts (bed coords)
+  if (pts.length < 2) return pts.map(p => bedToCanvas(p[0], p[1]));
+  const out = [];
+  const cpts = [pts[0], ...pts, pts[pts.length-1]]; // duplicate ends
+  for (let i = 1; i < cpts.length - 2; i++) {
+    const p0 = cpts[i-1], p1 = cpts[i], p2 = cpts[i+1], p3 = cpts[i+2];
+    for (let t = 0; t <= segments; t++) {
+      const tt = t / segments;
+      const tt2 = tt*tt, tt3 = tt2*tt;
+      const bx = 0.5*((2*p1[0])+(-p0[0]+p2[0])*tt+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*tt2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*tt3);
+      const by = 0.5*((2*p1[1])+(-p0[1]+p2[1])*tt+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*tt2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*tt3);
+      out.push(bedToCanvas(bx, by));
+    }
+  }
+  return out;
+}
+
+function drawCurvedPath(ctx, obj, isSelected) {
+  const pts = obj.points;
+  const isWaterway = obj.type === 'waterway';
+  const def = OBJECT_DEFS[obj.type];
+
+  if (!pts || pts.length < 2) {
+    if (pts && pts.length === 1) {
+      const [cx,cy] = bedToCanvas(pts[0][0], pts[0][1]);
+      ctx.beginPath(); ctx.arc(cx,cy,6,0,Math.PI*2);
+      ctx.fillStyle = def.color; ctx.fill();
+    }
+    if (isSelected) drawPathHandles(ctx, obj);
+    return;
+  }
+
+  const pathWidth = (obj.pathWidth || 0.5) * scale;
+  const curvePts = catmullRomPoints(pts);
+
+  ctx.save();
+
+  if (isWaterway) {
+    // Deep water fill
+    ctx.beginPath();
+    ctx.moveTo(curvePts[0][0], curvePts[0][1]);
+    curvePts.slice(1).forEach(([x,y]) => ctx.lineTo(x, y));
+    ctx.strokeStyle = '#2a6496';
+    ctx.lineWidth = pathWidth;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    // Lighter blue overlay
+    ctx.beginPath();
+    ctx.moveTo(curvePts[0][0], curvePts[0][1]);
+    curvePts.slice(1).forEach(([x,y]) => ctx.lineTo(x, y));
+    ctx.strokeStyle = '#5ba3d4';
+    ctx.lineWidth = pathWidth * 0.65;
+    ctx.stroke();
+
+    // Ripple lines
+    ctx.setLineDash([pathWidth * 0.4, pathWidth * 0.5]);
+    ctx.beginPath();
+    ctx.moveTo(curvePts[0][0], curvePts[0][1]);
+    curvePts.slice(1).forEach(([x,y]) => ctx.lineTo(x, y));
+    ctx.strokeStyle = 'rgba(180,220,255,0.6)';
+    ctx.lineWidth = pathWidth * 0.25;
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Bank edges
+    ctx.beginPath();
+    ctx.moveTo(curvePts[0][0], curvePts[0][1]);
+    curvePts.slice(1).forEach(([x,y]) => ctx.lineTo(x, y));
+    ctx.strokeStyle = '#1a4a6a';
+    ctx.lineWidth = pathWidth + 3;
+    ctx.globalAlpha = 0.25;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Label
+    const mid = curvePts[Math.floor(curvePts.length/2)];
+    ctx.fillStyle = '#1a4a6a';
+    ctx.font = 'bold 10px DM Sans,sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.shadowColor='rgba(255,255,255,.9)'; ctx.shadowBlur=3;
+    ctx.fillText('Waterway', mid[0], mid[1] - pathWidth/2 - 2); ctx.shadowBlur=0;
+
+  } else {
+    // Gravel path
+    ctx.beginPath();
+    ctx.moveTo(curvePts[0][0], curvePts[0][1]);
+    curvePts.slice(1).forEach(([x,y]) => ctx.lineTo(x, y));
+    ctx.strokeStyle = '#c8b890';
+    ctx.lineWidth = pathWidth;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    ctx.strokeStyle = '#a89870';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.setLineDash([8, 7]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const mid = curvePts[Math.floor(curvePts.length/2)];
+    ctx.fillStyle = '#6a5a30';
+    ctx.font = 'bold 10px DM Sans,sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.shadowColor='rgba(255,255,255,.8)'; ctx.shadowBlur=3;
+    ctx.fillText('Path', mid[0], mid[1] - pathWidth/2 - 2); ctx.shadowBlur=0;
+  }
+
+  ctx.restore();
+  if (isSelected) drawPathHandles(ctx, obj);
+}
+
+function drawPathHandles(ctx, obj) {
+  const pts = obj.points || [];
+  pts.forEach(([bx,by], i) => {
+    const [cx,cy] = bedToCanvas(bx, by);
+    ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI*2);
+    ctx.fillStyle = i === 0 ? '#3b6d11' : '#fff';
+    ctx.strokeStyle = '#3b6d11'; ctx.lineWidth = 2;
+    ctx.fill(); ctx.stroke();
+    // Index label
+    ctx.fillStyle = i === 0 ? '#fff' : '#3b6d11';
+    ctx.font = 'bold 9px DM Sans,sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(i+1, cx, cy);
+  });
+  // Drawing mode hint
+  if (pathDrawingMode) {
+    ctx.fillStyle = '#3b6d11';
+    ctx.font = '10px DM Sans,sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText('Click canvas to add points · Press Esc to finish', padX, padY + (gardenData.beds[activeBed]?.length||4)*scale + 6);
+  }
+}
+
+function waypointAt(cx, cy) {
+  if (!selectedObject || (selectedObject.type !== 'path' && selectedObject.type !== 'waterway')) return -1;
+  const pts = selectedObject.points || [];
+  for (let i = 0; i < pts.length; i++) {
+    const [pcx, pcy] = bedToCanvas(pts[i][0], pts[i][1]);
+    if (Math.hypot(cx-pcx, cy-pcy) <= 9) return i;
+  }
+  return -1;
+}
+
+function togglePathDrawingMode() {
+  if (!selectedObject || (selectedObject.type !== 'path' && selectedObject.type !== 'waterway')) {
+    showToast('Select a path or waterway first'); return;
+  }
+  pathDrawingMode = !pathDrawingMode;
+  document.getElementById('path-draw-btn').textContent = pathDrawingMode ? '✓ Done adding points' : '＋ Add points';
+  document.getElementById('path-draw-btn').style.background = pathDrawingMode ? '#3b6d11' : '';
+  document.getElementById('path-draw-btn').style.color = pathDrawingMode ? '#fff' : '';
+  draw();
+}
+
+function updatePathToolbar() {
+  const btn = document.getElementById('path-draw-btn');
+  const widthWrap = document.getElementById('path-width-wrap');
+  const show = selectedObject && (selectedObject.type === 'path' || selectedObject.type === 'waterway');
+  btn.style.display = show ? '' : 'none';
+  widthWrap.style.display = show ? '' : 'none';
+  if (show) {
+    document.getElementById('path-width-val').value = selectedObject.pathWidth || 0.5;
+    document.getElementById('path-width-label').textContent = (selectedObject.pathWidth || 0.5) + 'm';
+    btn.textContent = pathDrawingMode ? '✓ Done adding points' : '＋ Add points';
+    btn.style.background = pathDrawingMode ? '#3b6d11' : '';
+    btn.style.color = pathDrawingMode ? '#fff' : '';
+  } else {
+    pathDrawingMode = false;
+  }
+}
+
+
 let gardenData = JSON.parse(localStorage.getItem('gardenDataBFP3') || 'null') || {
   beds: {
     'Site 1': { width: 4, length: 3, plants: [] }
@@ -639,13 +998,60 @@ function displayName(p) {
 // ── SIDEBAR BUILD ─────────────────────────────────────────────────────────────
 function buildBedSelector() {
   const sel = document.getElementById('bed-selector');
+  if (!sel) return; // sidebar removed — no-op
   sel.innerHTML = '';
   Object.keys(gardenData.beds).forEach(name => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:flex;align-items:center;gap:4px';
+
     const btn = document.createElement('button');
     btn.className = 'bed-btn' + (name === activeBed ? ' active' : '');
+    btn.style.flex = '1';
     btn.textContent = name;
+    btn.title = 'Click to select · Double-click to rename';
     btn.onclick = () => selectBed(name);
-    sel.appendChild(btn);
+    btn.ondblclick = (e) => { e.stopPropagation(); startBedRename(name, btn, wrap); };
+
+    wrap.appendChild(btn);
+    sel.appendChild(wrap);
+  });
+}
+
+function startBedRename(oldName, btn, wrap) {
+  const input = document.createElement('input');
+  input.value = oldName;
+  input.style.cssText = 'flex:1;padding:5px 8px;border:1.5px solid var(--green-mid);border-radius:7px;font-family:"DM Sans",sans-serif;font-size:12px;background:#fff;color:var(--text);outline:none;width:100%';
+
+  wrap.replaceChild(input, btn);
+  input.focus(); input.select();
+
+  function commit() {
+    const newName = input.value.trim();
+    if (!newName || newName === oldName) { wrap.replaceChild(btn, input); return; }
+    if (gardenData.beds[newName]) { showToast('That name is already used'); input.focus(); return; }
+
+    // Rename the bed key
+    const beds = {};
+    Object.entries(gardenData.beds).forEach(([k,v]) => { beds[k === oldName ? newName : k] = v; });
+    gardenData.beds = beds;
+
+    // Update all objects referencing this bed
+    gardenData.objects.forEach(o => { if (o.bed === oldName) o.bed = newName; });
+
+    if (activeBed === oldName) activeBed = newName;
+    saveToStorage();
+    buildBedSelector();
+    if (activeBed) {
+      document.getElementById('bed-title').textContent = activeBed;
+      document.getElementById('bed-dims').textContent = `${gardenData.beds[activeBed].width}m × ${gardenData.beds[activeBed].length}m ✎`;
+    }
+    showToast(`Renamed to "${newName}"`);
+  }
+
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { wrap.replaceChild(btn, input); }
   });
 }
 
@@ -781,6 +1187,7 @@ function selectBed(name) {
   const bed = gardenData.beds[name];
   document.getElementById('bed-dims').textContent = `${bed.width}m × ${bed.length}m ✎`;
   closeSizeEditor();
+  updateImageUI();
 }
 
 function resizeCanvas() {
@@ -796,13 +1203,102 @@ function resizeCanvas() {
 function bedToCanvas(x, y) { return [padX + x*scale, padY + y*scale]; }
 function canvasToBed(cx, cy) { return [(cx-padX)/scale, (cy-padY)/scale]; }
 
+// ── BACKGROUND IMAGE ─────────────────────────────────────────────────────────
+const bgImageCache = {}; // bedName → HTMLImageElement
+
+function handleImageUpload(event) {
+  if (!activeBed) { showToast('Select a site first'); return; }
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    gardenData.beds[activeBed].bgImage = dataUrl;
+    gardenData.beds[activeBed].bgOpacity = 0.45;
+    // Cache the image element
+    const img = new Image();
+    img.src = dataUrl;
+    img.onload = () => { bgImageCache[activeBed] = img; draw(); };
+    saveToStorage();
+    updateImageUI();
+  };
+  reader.readAsDataURL(file);
+}
+
+function getOrLoadBgImage(bedName, callback) {
+  if (bgImageCache[bedName]) { callback(bgImageCache[bedName]); return; }
+  const dataUrl = gardenData.beds[bedName]?.bgImage;
+  if (!dataUrl) return;
+  const img = new Image();
+  img.src = dataUrl;
+  img.onload = () => { bgImageCache[bedName] = img; callback(img); };
+}
+
+function updateImageOpacity(val) {
+  if (!activeBed) return;
+  gardenData.beds[activeBed].bgOpacity = parseFloat(val);
+  document.getElementById('img-opacity-label').textContent = Math.round(val * 100) + '%';
+  saveToStorage(); draw();
+}
+
+function removeImage() {
+  if (!activeBed) return;
+  delete gardenData.beds[activeBed].bgImage;
+  delete gardenData.beds[activeBed].bgOpacity;
+  delete bgImageCache[activeBed];
+  saveToStorage(); draw(); updateImageUI();
+  showToast('Image removed');
+}
+
+function updateImageUI() {
+  if (!activeBed) return;
+  const bed = gardenData.beds[activeBed];
+  const preview = document.getElementById('img-preview');
+  const controls = document.getElementById('img-controls');
+  if (bed.bgImage) {
+    preview.src = bed.bgImage; preview.style.display = 'block';
+    controls.style.display = 'flex';
+    const op = bed.bgOpacity || 0.45;
+    document.getElementById('img-opacity').value = op;
+    document.getElementById('img-opacity-label').textContent = Math.round(op * 100) + '%';
+  } else {
+    preview.src = ''; preview.style.display = 'none';
+    controls.style.display = 'none';
+  }
+}
+
 function draw() {
   if (!activeBed) return;
   const bed = gardenData.beds[activeBed];
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Bed fill
-  ctx.fillStyle = '#d4e8b0';
+  // Background image (under everything)
+  if (bed.bgImage) {
+    getOrLoadBgImage(activeBed, img => {
+      ctx.save();
+      ctx.globalAlpha = bed.bgOpacity || 0.45;
+      // Draw image stretched to fill the bed area
+      ctx.drawImage(img, padX, padY, bed.width * scale, bed.length * scale);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+      drawBedContent(bed);
+    });
+    // Draw content immediately too in case image is cached
+    if (bgImageCache[activeBed]) {
+      ctx.save();
+      ctx.globalAlpha = bed.bgOpacity || 0.45;
+      ctx.drawImage(bgImageCache[activeBed], padX, padY, bed.width * scale, bed.length * scale);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+  }
+
+  drawBedContent(bed);
+}
+
+function drawBedContent(bed) {
+  // Bed fill (semi-transparent so image shows through)
+  ctx.fillStyle = bed.bgImage ? 'rgba(212,232,176,0.25)' : '#d4e8b0';
   ctx.beginPath(); ctx.roundRect(padX, padY, bed.width*scale, bed.length*scale, 8); ctx.fill();
 
   // Grid
@@ -871,6 +1367,7 @@ function updateInfo() {
     document.getElementById('selected-info').style.display = 'none';
   }
   buildLegend();
+  updatePathToolbar();
 }
 
 function getXY(e) {
@@ -881,8 +1378,30 @@ function getXY(e) {
 function objectAt(cx, cy) {
   if (!activeBed) return null;
   const [bx, by] = canvasToBed(cx, cy);
-  return gardenData.objects.filter(o => o.bed === activeBed).find(o => {
+  const objs = gardenData.objects.filter(o => o.bed === activeBed);
+  // Check paths — hit if near any waypoint or on the curve
+  for (const o of objs) {
+    if (o.type === 'path' || o.type === 'waterway') {
+      const pts = o.points || [];
+      // Near a waypoint
+      if (pts.some(p => Math.hypot(p[0]-bx, p[1]-by) < 0.3)) return o;
+      // Near the curve line
+      if (pts.length >= 2) {
+        const curvePts = catmullRomPoints(pts);
+        const pathHalfW = (o.pathWidth || 0.5) / 2;
+        if (curvePts.some(([px,py]) => Math.hypot(px-cx, py-cy) < pathHalfW*scale + 6)) return o;
+      }
+    }
+  }
+  // Check rectangular / elliptical objects
+  return objs.find(o => {
+    if (o.type === 'path' || o.type === 'waterway') return false;
     const { w, h } = objSize(o);
+    if (o.type === 'pond_dam') {
+      const dx = (bx - o.x) / (w/2);
+      const dy = (by - o.y) / (h/2);
+      return dx*dx + dy*dy <= 1;
+    }
     return bx >= o.x - w/2 && bx <= o.x + w/2 &&
            by >= o.y - h/2 && by <= o.y + h/2;
   }) || null;
@@ -907,7 +1426,20 @@ canvas.addEventListener('mousedown', e => {
   if (!activeBed) return;
   const [cx,cy] = getXY(e);
 
-  // Check resize handles first
+  // Path drawing mode — click adds a waypoint
+  if (pathDrawingMode && selectedObject && (selectedObject.type === 'path' || selectedObject.type === 'waterway')) {
+    const [bx,by] = canvasToBed(cx,cy);
+    selectedObject.points.push([Math.round(bx*100)/100, Math.round(by*100)/100]);
+    saveToStorage(); draw(); return;
+  }
+
+  // Drag existing waypoint
+  const wpi = waypointAt(cx, cy);
+  if (wpi >= 0 && selectedObject && selectedObject.type === 'path') {
+    draggingWaypoint = selectedObject; waypointIdx = wpi; return;
+  }
+
+  // Check resize handles first (non-path objects)
   const handle = handleAt(cx, cy);
   if (handle && selectedObject) {
     resizingObj = selectedObject;
@@ -923,53 +1455,107 @@ canvas.addEventListener('mousedown', e => {
   const obj = objectAt(cx, cy);
   if (obj) {
     const [bx,by] = canvasToBed(cx,cy);
-    draggingObj=obj; objDragOX=bx-obj.x; objDragOY=by-obj.y;
-    selectedObject=obj; selectedPlant=null; updateInfo(); draw(); return;
+    if (obj.type === 'path' || obj.type === 'waterway') {
+      // Only start a path drag if NOT clicking a waypoint handle
+      const wpi = waypointAt(cx, cy);
+      if (wpi < 0) {
+        // Compute centroid for offset
+        const pts = obj.points || [];
+        const cx0 = pts.reduce((s,p)=>s+p[0],0)/Math.max(pts.length,1);
+        const cy0 = pts.reduce((s,p)=>s+p[1],0)/Math.max(pts.length,1);
+        draggingObj=obj; objDragOX=bx-cx0; objDragOY=by-cy0;
+      }
+    } else {
+      draggingObj=obj; objDragOX=bx-obj.x; objDragOY=by-obj.y;
+    }
+    selectedObject=obj; selectedPlant=null;
+    pathDrawingMode = false;
+    updateInfo(); updatePathToolbar(); draw(); return;
   }
 
   const p = plantAt(cx,cy);
   if (p) {
     const [bx,by] = canvasToBed(cx,cy);
     dragging=p; dragOffsetX=bx-p.x; dragOffsetY=by-p.y;
-    selectedPlant=p; selectedObject=null; updateInfo(); draw();
+    selectedPlant=p; selectedObject=null;
+    pathDrawingMode=false; updatePathToolbar();
+    updateInfo(); draw();
   } else {
-    selectedPlant=null; selectedObject=null; updateInfo(); draw();
+    selectedPlant=null; selectedObject=null;
+    pathDrawingMode=false; updatePathToolbar();
+    updateInfo(); draw();
   }
 });
 
 canvas.addEventListener('mousemove', e => {
   const [cx,cy] = getXY(e);
 
+  // Waypoint drag
+  if (draggingWaypoint) {
+    const [bx,by] = canvasToBed(cx,cy);
+    draggingWaypoint.points[waypointIdx] = [Math.round(bx*100)/100, Math.round(by*100)/100];
+    draw(); return;
+  }
+
   // Update cursor near handles
-  if (selectedObject && !resizingObj && !draggingObj) {
+  if (selectedObject && selectedObject.type !== 'path' && !resizingObj && !draggingObj) {
     const h = handleAt(cx, cy);
     canvas.style.cursor = h ? (h==='tl'||h==='br' ? 'nwse-resize' : 'nesw-resize') : 'default';
+  } else if (selectedObject && (selectedObject.type === 'path' || selectedObject.type === 'waterway')) {
+    const wpi = waypointAt(cx, cy);
+    canvas.style.cursor = wpi >= 0 ? 'grab' : (pathDrawingMode ? 'crosshair' : 'default');
   }
 
   if (resizingObj) {
     const [bx,by] = canvasToBed(cx,cy);
     const dx = bx - resizeStartX, dy = by - resizeStartY;
     const MIN = 0.5;
-    const bed = gardenData.beds[activeBed];
     let newW = resizeStartW, newH = resizeStartH;
     if (resizeHandle === 'br') { newW = Math.max(MIN, resizeStartW + dx*2); newH = Math.max(MIN, resizeStartH + dy*2); }
     if (resizeHandle === 'tl') { newW = Math.max(MIN, resizeStartW - dx*2); newH = Math.max(MIN, resizeStartH - dy*2); }
     if (resizeHandle === 'tr') { newW = Math.max(MIN, resizeStartW + dx*2); newH = Math.max(MIN, resizeStartH - dy*2); }
     if (resizeHandle === 'bl') { newW = Math.max(MIN, resizeStartW - dx*2); newH = Math.max(MIN, resizeStartH + dy*2); }
-    // Snap to 0.5m
-    resizingObj.w = Math.round(newW * 2) / 2;
-    resizingObj.h = Math.round(newH * 2) / 2;
-    draw(); return;
+    resizingObj.w = Math.round(newW * 4) / 4;
+    resizingObj.h = Math.round(newH * 4) / 4;
+    // Update info bar live
+    document.getElementById('selected-info').style.display = '';
+    document.getElementById('selected-name').textContent =
+      `${OBJECT_DEFS[resizingObj.type]?.label} — ${resizingObj.w}m × ${resizingObj.h}m`;
+    draw();
+    // Draw dimension badge on canvas
+    const [ocx, ocy] = bedToCanvas(resizingObj.x, resizingObj.y);
+    const label = `${resizingObj.w}m × ${resizingObj.h}m`;
+    ctx.save();
+    ctx.font = 'bold 12px DM Sans,sans-serif';
+    const tw = ctx.measureText(label).width;
+    const bx2 = ocx - tw/2 - 8, by2 = ocy - 14;
+    ctx.fillStyle = 'rgba(44,62,26,0.88)';
+    ctx.beginPath(); ctx.roundRect(bx2, by2, tw+16, 22, 5); ctx.fill();
+    ctx.fillStyle = '#f0ead8';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, ocx, by2 + 11);
+    ctx.restore();
+    return;
   }
 
   if (draggingObj) {
     const [bx,by] = canvasToBed(cx,cy);
-    const { w, h } = objSize(draggingObj);
-    const bed = gardenData.beds[activeBed];
-    draggingObj.x = Math.min(Math.max(bx-objDragOX, w/2), bed.width-w/2);
-    draggingObj.y = Math.min(Math.max(by-objDragOY, h/2), bed.length-h/2);
-    draggingObj.x = Math.round(draggingObj.x*100)/100;
-    draggingObj.y = Math.round(draggingObj.y*100)/100;
+    if (draggingObj.type === 'path' || draggingObj.type === 'waterway') {
+      // Shift all points by delta from centroid
+      const pts = draggingObj.points || [];
+      const cx0 = pts.reduce((s,p)=>s+p[0],0)/Math.max(pts.length,1);
+      const cy0 = pts.reduce((s,p)=>s+p[1],0)/Math.max(pts.length,1);
+      const newCx = bx - objDragOX, newCy = by - objDragOY;
+      const dx = newCx - cx0, dy = newCy - cy0;
+      draggingObj.points = pts.map(([px,py]) => [Math.round((px+dx)*100)/100, Math.round((py+dy)*100)/100]);
+    } else {
+      const { w, h } = objSize(draggingObj);
+      const bed = gardenData.beds[activeBed];
+      draggingObj.x = Math.min(Math.max(bx-objDragOX, w/2), bed.width-w/2);
+      draggingObj.y = Math.min(Math.max(by-objDragOY, h/2), bed.length-h/2);
+      draggingObj.x = Math.round(draggingObj.x*100)/100;
+      draggingObj.y = Math.round(draggingObj.y*100)/100;
+    }
     draw(); return;
   }
 
@@ -980,11 +1566,13 @@ canvas.addEventListener('mousemove', e => {
 });
 
 canvas.addEventListener('mouseup', () => {
+  if (draggingWaypoint) { saveToStorage(); draggingWaypoint=null; waypointIdx=-1; }
   if (resizingObj) { saveToStorage(); resizingObj=null; resizeHandle=null; canvas.style.cursor='default'; }
   if (draggingObj) { saveToStorage(); draggingObj=null; }
   if (dragging) { saveToStorage(); dragging=null; }
 });
 canvas.addEventListener('mouseleave', () => {
+  if (draggingWaypoint) { saveToStorage(); draggingWaypoint=null; waypointIdx=-1; }
   if (resizingObj) { saveToStorage(); resizingObj=null; resizeHandle=null; canvas.style.cursor='default'; }
   if (draggingObj) { saveToStorage(); draggingObj=null; }
   if (dragging) { saveToStorage(); dragging=null; }
@@ -992,9 +1580,24 @@ canvas.addEventListener('mouseleave', () => {
 canvas.addEventListener('dblclick', e => {
   if (!activeBed) return;
   const [cx,cy]=getXY(e);
+  // Double-click a waypoint removes it
+  if (selectedObject && selectedObject.type === 'path') {
+    const wpi = waypointAt(cx, cy);
+    if (wpi >= 0 && selectedObject.points.length > 1) {
+      selectedObject.points.splice(wpi, 1);
+      saveToStorage(); draw(); return;
+    }
+  }
   const obj = objectAt(cx,cy);
   if (obj) { removeObject(obj.id); return; }
   const p=plantAt(cx,cy); if(p) removePlant(p.id);
+});
+
+// Escape key finishes path drawing
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && pathDrawingMode) {
+    pathDrawingMode = false; updatePathToolbar(); draw();
+  }
 });
 
 // Touch
@@ -1074,16 +1677,26 @@ function addObjectToCanvas(type, bx, by) {
   if (!activeBed) { showToast('Select a site first'); return; }
   const def = OBJECT_DEFS[type]; if (!def) return;
   const bed = gardenData.beds[activeBed];
-  const obj = {
-    id: nextId++, type, bed: activeBed,
-    w: def.w, h: def.h,
-    x: Math.min(Math.max(bx, def.w/2), bed.width-def.w/2),
-    y: Math.min(Math.max(by, def.h/2), bed.length-def.h/2)
-  };
-  gardenData.objects.push(obj);
-  selectedObject = obj; selectedPlant = null;
-  saveToStorage(); draw(); updateInfo();
-  showToast(`${def.label} added · double-click to remove`);
+  let obj;
+  if (type === 'path' || type === 'waterway') {
+    obj = { id: nextId++, type, bed: activeBed, pathWidth: 0.5, points: [[bx, by]] };
+    gardenData.objects.push(obj);
+    selectedObject = obj; selectedPlant = null;
+    pathDrawingMode = true;
+    saveToStorage(); draw(); updateInfo(); updatePathToolbar();
+    showToast(`${OBJECT_DEFS[type].label} started — click canvas to add more points`);
+  } else {
+    obj = {
+      id: nextId++, type, bed: activeBed,
+      w: def.w, h: def.h,
+      x: Math.min(Math.max(bx, def.w/2), bed.width-def.w/2),
+      y: Math.min(Math.max(by, def.h/2), bed.length-def.h/2)
+    };
+    gardenData.objects.push(obj);
+    selectedObject = obj; selectedPlant = null;
+    saveToStorage(); draw(); updateInfo();
+    showToast(`${def.label} added · double-click to remove`);
+  }
 }
 
 function removeObject(id) {
@@ -1095,7 +1708,25 @@ function removeObject(id) {
   showToast(`${label} removed`);
 }
 
-function clearSelected() { selectedPlant=null; selectedObject=null; draw(); updateInfo(); }
+function updatePathWidth(val) {
+  if (!selectedObject || (selectedObject.type !== 'path' && selectedObject.type !== 'waterway')) return;
+  selectedObject.pathWidth = parseFloat(val);
+  document.getElementById('path-width-label').textContent = val + 'm';
+  saveToStorage(); draw();
+}
+
+function clearAll() {
+  if (!activeBed) { showToast('Select a site first'); return; }
+  if (!confirm(`Remove all plants and objects from "${activeBed}"?`)) return;
+  gardenData.beds[activeBed].plants = [];
+  gardenData.objects = gardenData.objects.filter(o => o.bed !== activeBed);
+  selectedPlant = null; selectedObject = null;
+  pathDrawingMode = false; updatePathToolbar();
+  saveToStorage(); draw(); updateInfo();
+  showToast('All plants and objects cleared');
+}
+
+function clearSelected() { selectedPlant=null; selectedObject=null; pathDrawingMode=false; updatePathToolbar(); draw(); updateInfo(); }
 function deleteSelected() {
   if (selectedObject) { removeObject(selectedObject.id); return; }
   if (selectedPlant) removePlant(selectedPlant.id);
@@ -1124,8 +1755,8 @@ function applyBedSize() {
   if (!activeBed) return;
   const w = parseFloat(document.getElementById('edit-width').value);
   const l = parseFloat(document.getElementById('edit-length').value);
-  if (!w || !l || w <= 0 || l <= 0 || w > 100 || l > 100) {
-    showToast('Enter valid dimensions (1–100m)'); return;
+  if (!w || !l || w <= 0 || l <= 0 || w > 250 || l > 250) {
+    showToast('Enter valid dimensions (1–250m)'); return;
   }
   const bed = gardenData.beds[activeBed];
   bed.width  = Math.round(w * 2) / 2; // snap to 0.5m
@@ -1169,6 +1800,10 @@ function deleteBed() {
 }
 
 window.addEventListener('resize', () => { if(activeBed){resizeCanvas();draw();} });
+
+function toggleSection(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
 
 // ── RELOAD FROM FLORALIST ─────────────────────────────────────────────────────
 function reloadFloralistData() {

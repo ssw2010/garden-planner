@@ -526,7 +526,7 @@ document.addEventListener('keydown', e => {
 // Load from localStorage or use defaults
 function loadData() {
   try {
-    const saved = localStorage.getItem('floralistData7');
+    const saved = localStorage.getItem('floralistData9');
     if (saved) return JSON.parse(saved);
   } catch(e) {}
   // Deep clone defaults with added _id fields
@@ -539,9 +539,7 @@ function loadData() {
 let DATA = loadData();
 
 function saveData() {
-  localStorage.setItem('floralistData7', JSON.stringify(DATA));
-  // Signal garden-map.html (if open in another tab) to reload its palette
-  try { localStorage.setItem('floralistLastSaved', Date.now().toString()); } catch(e) {}
+  localStorage.setItem('floralistData9', JSON.stringify(DATA));
 }
 
 // ── UTILS ──────────────────────────────────────────────────────────────────────

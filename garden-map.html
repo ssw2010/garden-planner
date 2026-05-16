@@ -223,11 +223,13 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
 <div class="layout">
   <div class="sidebar">
 
-    <div class="sidebar-section">
-      <h3>Add Plants <span id="palette-count" style="font-weight:300;font-family:'DM Sans',sans-serif;text-transform:none;letter-spacing:0"></span></h3>
-      <input class="palette-search" id="palette-search" type="text" placeholder="Search name…" oninput="renderPalette()">
-      <div class="size-filters" id="size-filters"></div>
-      <div class="plant-palette" id="plant-palette"></div>
+    <div class="sidebar-section collapsible" id="section-plants">
+      <h3 onclick="toggleSection('section-plants')">Add Plants <span id="palette-count" style="font-weight:300;font-family:'DM Sans',sans-serif;text-transform:none;letter-spacing:0"></span></h3>
+      <div class="section-body">
+        <input class="palette-search" id="palette-search" type="text" placeholder="Search name…" oninput="renderPalette()">
+        <div class="size-filters" id="size-filters"></div>
+        <div class="plant-palette" id="plant-palette"></div>
+      </div>
     </div>
 
     <div class="sidebar-section collapsible collapsed" id="section-objects">
@@ -366,27 +368,31 @@ function loadFloralistData() {
     const rows = data.natives && data.natives.rows;
     if (!rows || !rows.length) return null;
 
-    // Map floralist rows → [botanical, commonName, shade, plantingSpaceM]
-    // Row format: [botanical(0), commonName(1), shade(2), height(3), plantingSpace(4), status(5)]
+    // Floralist row format (9 cols):
+    // [0] THUMBNAIL  [1] PAGE URL  [2] BOTANICAL NAME  [3] COMMON NAME
+    // [4] SHADE TOLERANCE  [5] PLANT HEIGHT (m)  [6] PLANTING SPACE (m)
+    // [7] SOIL  [8] STOCK / notes
     return rows.map(r => {
-      const botanical     = r[0] || '';
-      const commonName    = r[1] || '';
-      const shade         = r[2] || '';
-      const plantingSpace = parseFloat(r[4]) || null;
-      return [botanical, commonName, shade, null, plantingSpace];
+      const botanical     = (r[2] || '').replace(' (copy)', '').trim();
+      const commonName    = r[3] || '';
+      const shade         = r[4] || '';
+      const plantingSpace = parseFloat(r[6]) || null;
+      const thumbUrl      = r[0] || '';
+      const pageUrl       = r[1] || '';
+      return [botanical, commonName, shade, null, plantingSpace, thumbUrl, pageUrl];
     }).filter(r => r[0]); // skip blank botanical names
   } catch(e) {
     return null;
   }
 }
 
-// Build PLANTS array — uses planting space (col 4) only; null if not set
-// Format used throughout: [botanical, commonName, shade, spacingM]
+// Build PLANTS array from raw rows.
+// Output format: [botanical, commonName, shade, spacingM, thumbUrl, pageUrl]
 function buildPlants(rawRows) {
   const seen = new Set();
   return rawRows
     .filter(r => { if (seen.has(r[0])) return false; seen.add(r[0]); return true; })
-    .map(r => [r[0], r[1], r[2], r[4] ? parseFloat(r[4]) : null]);
+    .map(r => [r[0], r[1], r[2], r[4] ? parseFloat(r[4]) : null, r[5] || '', r[6] || '']);
 }
 
 const floralistRaw = loadFloralistData() || FLORALIST_FALLBACK;
@@ -1816,8 +1822,15 @@ function reloadFloralistData() {
   updateDataBadge(true);
   buildSizeFilters();
   renderPalette();
-  showToast(`Loaded ${PLANTS.length} species from Floralist`);
+  showToast(`✓ Loaded ${PLANTS.length} species from Floralist`);
 }
+
+// Auto-reload palette whenever floralist.html saves in another tab
+window.addEventListener('storage', e => {
+  if (e.key === 'floralistData7' || e.key === 'floralistLastSaved') {
+    reloadFloralistData();
+  }
+});
 
 function updateDataBadge(fromFloralist) {
   const badge = document.getElementById('data-source-badge');

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Australian Bird Call Identifier</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#f5f4f0;color:#1a1a18;min-height:100vh;padding:2rem 1rem}
+.container{max-width:640px;margin:0 auto}
+.hdr{text-align:center;margin-bottom:1.5rem}
+.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#888;margin-bottom:.3rem}
+h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:400;color:#1a1a18}
+h1 em{font-style:italic;color:#3B6D11}
+.sub{font-size:13px;color:#666;margin-top:.3rem}
+.panel{background:#fff;border:0.5px solid #e0dfd8;border-radius:14px;padding:1.25rem;margin-bottom:1rem}
+.model-status{display:flex;align-items:center;gap:8px;font-size:12px;color:#666;margin-bottom:1rem;padding:.625rem 1rem;background:#f5f4f0;border-radius:8px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:#888}
+.dot.loading{background:#BA7517;animation:blink 1s ease-in-out infinite}
+.dot.ready{background:#639922}
+.dot.error{background:#E24B4A}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.rec-area{display:flex;flex-direction:column;align-items:center;gap:.875rem}
+.rec-btn{width:72px;height:72px;border-radius:50%;border:2px solid #639922;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.rec-btn:hover:not(:disabled){background:#EAF3DE;transform:scale(1.04)}
+.rec-btn:disabled{border-color:#ccc;cursor:not-allowed;opacity:.5}
+.rec-btn.recording{border-color:#E24B4A;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(226,75,74,.3)}50%{box-shadow:0 0 0 10px rgba(226,75,74,0)}}
+.rec-icon{width:24px;height:24px;border-radius:50%;background:#639922;transition:all .2s}
+.rec-btn.recording .rec-icon{width:18px;height:18px;border-radius:3px;background:#E24B4A}
+.rec-btn:disabled .rec-icon{background:#ccc}
+.rec-lbl{font-size:13px;color:#666;text-align:center}
+.timer{font-size:16px;font-family:'Playfair Display',serif;display:none}
+.timer.on{display:block}
+.wave{display:flex;align-items:center;gap:3px;height:32px;opacity:0;transition:opacity .3s}
+.wave.on{opacity:1}
+.wb{width:3px;height:5px;background:#639922;border-radius:2px;animation:wv .8s ease-in-out infinite}
+.wb:nth-child(2){animation-delay:.1s}.wb:nth-child(3){animation-delay:.2s}.wb:nth-child(4){animation-delay:.3s}.wb:nth-child(5){animation-delay:.4s}.wb:nth-child(6){animation-delay:.3s}.wb:nth-child(7){animation-delay:.2s}
+@keyframes wv{0%,100%{height:5px}50%{height:24px}}
+.divider{display:flex;align-items:center;gap:.75rem;margin:.875rem 0;color:#aaa;font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:.5px;background:#e0dfd8}
+.up-zone{border:.5px dashed #ccc;border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:all .2s}
+.up-zone:hover{border-color:#639922;background:#EAF3DE18}
+.up-zone input{display:none}
+.up-lbl{font-size:13px;color:#666;cursor:pointer;display:block}
+.up-lbl i{font-size:16px;display:block;margin-bottom:4px;color:#639922}
+audio{width:100%;border-radius:6px;margin-top:.75rem;display:none}
+audio.on{display:block}
+.loc-row{display:flex;gap:8px;margin-top:.75rem;align-items:center}
+.loc-btn{font-size:12px;padding:5px 11px;border:.5px solid #ccc;border-radius:20px;background:transparent;cursor:pointer;color:#666;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px;transition:all .2s}
+.loc-btn:hover{border-color:#639922;color:#3B6D11}
+.loc-txt{font-size:12px;color:#3B6D11;flex:1}
+.id-btn{width:100%;padding:12px;background:#3B6D11;color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:.75rem;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px}
+.id-btn:hover:not(:disabled){background:#27500A;transform:translateY(-1px)}
+.id-btn:disabled{background:#e0dfd8;color:#aaa;cursor:not-allowed;transform:none}
+.api-row{margin-top:.875rem}
+.api-label{font-size:12px;color:#666;display:block;margin-bottom:5px;font-weight:500}
+.api-input{width:100%;padding:8px 12px;border:.5px solid #e0dfd8;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:#1a1a18;background:#f5f4f0;outline:none;transition:border-color .2s}
+.api-input:focus{border-color:#639922}
+.api-hint{font-size:11px;color:#aaa;margin-top:4px}
+.api-hint a{color:#639922}
+.res-wrap{display:none}
+.res-wrap.on{display:block}
+.loading-card{padding:2rem;text-align:center}
+.load-bird{font-size:28px;animation:bob 1s ease-in-out infinite;display:block;margin-bottom:.75rem}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.load-txt{font-size:13px;color:#666;font-style:italic}
+.res-hd{padding:.875rem 1.25rem;border-bottom:.5px solid #e0dfd8;display:flex;align-items:center;justify-content:space-between}
+.res-hd-lbl{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#aaa}
+.badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500}
+.b-hi{background:#EAF3DE;color:#3B6D11}.b-med{background:#FAEEDA;color:#854F0B}.b-lo{background:#FCEBEB;color:#A32D2D}
+.bird-body{padding:1.25rem}
+.bird-photo{width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-bottom:1rem;display:none}
+.bird-photo.on{display:block}
+.birdnet-title{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#aaa;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.birdnet-badge{font-size:10px;padding:2px 7px;border-radius:10px;background:#EAF3DE;color:#3B6D11;font-weight:500}
+.bnet-item{display:flex;align-items:center;padding:6px 0;border-bottom:.5px solid #f0efe8;font-size:13px}
+.bnet-item:last-child{border-bottom:none}
+.bnet-name{flex:0 0 160px;color:#1a1a18;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bnet-bar-wrap{flex:1;height:4px;background:#f0efe8;border-radius:2px;margin:0 10px}
+.bnet-bar{height:100%;background:#639922;border-radius:2px}
+.bnet-pct{color:#888;font-size:12px;min-width:36px;text-align:right}
+.bird-common{font-family:'Playfair Display',serif;font-size:22px;font-weight:400;line-height:1.2;color:#1a1a18}
+.bird-sci{font-size:12px;font-style:italic;color:#aaa;margin-top:2px;margin-bottom:.75rem}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.875rem}
+.tag{font-size:11px;padding:3px 9px;border-radius:20px;border:.5px solid #e0dfd8;color:#666}
+.tag-en{background:#E1F5EE;border-color:#5DCAA5;color:#085041}
+.tag-th{background:#FCEBEB;border-color:#F09595;color:#791F1F}
+.bird-desc{font-size:13px;color:#555;line-height:1.7;margin-bottom:.875rem}
+.inat-sec{border-top:.5px solid #e0dfd8;padding:1rem 1.25rem}
+.sec-title{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#aaa;margin-bottom:.75rem}
+.inat-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.875rem}
+.stat-card{background:#f5f4f0;border-radius:8px;padding:.625rem;text-align:center}
+.stat-num{font-size:16px;font-weight:500;display:block;color:#1a1a18}
+.stat-lbl{font-size:10px;color:#aaa;margin-top:2px}
+.obs-list{display:flex;flex-direction:column;gap:5px;margin-bottom:.875rem}
+.obs-item{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f5f4f0;border-radius:8px;font-size:12px}
+.obs-dot{width:7px;height:7px;border-radius:50%;background:#9FE1CB;flex-shrink:0}
+.obs-place{color:#1a1a18;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.obs-date{color:#aaa;flex-shrink:0;font-size:11px}
+.inat-link{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#3B6D11;text-decoration:none}
+.inat-link:hover{text-decoration:underline}
+.fact{font-size:12px;color:#aaa;border-left:2px solid #C0DD97;padding-left:10px;line-height:1.6;margin-top:.875rem}
+.source-note{font-size:11px;color:#aaa;text-align:center;margin-top:.5rem;font-style:italic}
+.birdnet-results{margin-bottom:1rem}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hdr">
+    <p class="eyebrow">Field Guide · Australia</p>
+    <h1>Identify <em>Bird Calls</em></h1>
+    <p class="sub">BirdNET audio analysis · iNaturalist sightings · Claude AI</p>
+  </div>
+
+  <div class="panel">
+    <div class="model-status" id="modelStatus">
+      <div class="dot loading" id="statusDot"></div>
+      <span id="statusTxt">Initialising audio engine…</span>
+    </div>
+
+    <div class="rec-area">
+      <button class="rec-btn" id="recBtn" disabled aria-label="Record bird call">
+        <div class="rec-icon"></div>
+      </button>
+      <p class="rec-lbl" id="recLbl">Loading…</p>
+      <div class="timer" id="timer">0:00</div>
+      <div class="wave" id="wave" aria-hidden="true">
+        <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+        <div class="wb"></div><div class="wb"></div><div class="wb"></div><div class="wb"></div>
+      </div>
+    </div>
+    <audio id="player" controls></audio>
+
+    <div class="divider">or upload audio</div>
+    <div class="up-zone" id="upZone">
+      <label class="up-lbl" for="fileIn">
+        <i class="ti ti-upload"></i>
+        .mp3 · .wav · .m4a · .ogg
+      </label>
+      <input type="file" id="fileIn" accept="audio/*">
+    </div>
+
+    <div class="loc-row">
+      <button class="loc-btn" id="locBtn"><i class="ti ti-map-pin"></i> Use my location</button>
+      <span class="loc-txt" id="locTxt"></span>
+    </div>
+
+
+
+    <button class="id-btn" id="idBtn" disabled>
+      <i class="ti ti-feather"></i> Analyse with BirdNET + Claude
+    </button>
+  </div>
+
+  <div class="res-wrap" id="resWrap">
+    <div class="panel" id="loadCard">
+      <div class="loading-card">
+        <span class="load-bird">🦜</span>
+        <p class="load-txt" id="loadTxt">Running audio analysis…</p>
+      </div>
+    </div>
+    <div class="panel" id="resCard" style="padding:0;overflow:hidden;display:none">
+      <div class="res-hd">
+        <span class="res-hd-lbl">Identification</span>
+        <span class="badge" id="confBadge"></span>
+      </div>
+      <div class="bird-body">
+        <img class="bird-photo" id="birdPhoto" alt="">
+        <div class="birdnet-results" id="bnetResults"></div>
+        <div class="bird-common" id="birdCommon"></div>
+        <div class="bird-sci" id="birdSci"></div>
+        <div class="tags" id="birdTags"></div>
+        <p class="bird-desc" id="birdDesc"></p>
+        <p class="bird-desc" id="callDesc" style="font-style:italic"></p>
+        <p class="fact" id="funFact"></p>
+      </div>
+      <div class="inat-sec" id="inatSec" style="display:none">
+        <div class="sec-title">iNaturalist · recent Australian sightings</div>
+        <div class="inat-stats" id="inatStats"></div>
+        <div class="obs-list" id="obsList"></div>
+        <a class="inat-link" id="inatLink" href="#" target="_blank">
+          <i class="ti ti-external-link"></i> View all on iNaturalist
+        </a>
+      </div>
+    </div>
+    <p class="source-note">Audio processed locally · API key used only for Claude identification</p>
+  </div>
+</div>
+
+<script>
+let mediaRecorder=null,chunks=[],isRec=false,timerInt=null,secs=0;
+let recBlob=null,upFile=null,audioBlob=null;
+let userLat=null,userLon=null;
+
+const $ = id => document.getElementById(id);
+const recBtn=$('recBtn'),recLbl=$('recLbl'),timerEl=$('timer');
+const waveEl=$('wave'),idBtn=$('idBtn'),player=$('player');
+const fileIn=$('fileIn'),locBtn=$('locBtn'),locTxt=$('locTxt');
+const resWrap=$('resWrap'),loadCard=$('loadCard'),loadTxt=$('loadTxt');
+const resCard=$('resCard'),statusDot=$('statusDot'),statusTxt=$('statusTxt');
+
+
+async function initAudio(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    await ctx.close();
+    setStatus('ready','Ready — record or upload a bird call');
+    recBtn.disabled=false;
+    recLbl.textContent='Tap to record a bird call';
+  }catch(e){
+    setStatus('error','Audio unavailable in this browser');
+  }
+}
+
+function setStatus(state,msg){
+  statusDot.className='dot '+state;
+  statusTxt.textContent=msg;
+}
+
+function checkEnable(){
+  idBtn.disabled=!audioBlob;
+}
+
+
+
+recBtn.addEventListener('click',async()=>{
+  if(!isRec){
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      mediaRecorder=new MediaRecorder(stream);chunks=[];
+      mediaRecorder.ondataavailable=e=>chunks.push(e.data);
+      mediaRecorder.onstop=()=>{
+        recBlob=new Blob(chunks,{type:'audio/webm'});
+        audioBlob=recBlob;
+        player.src=URL.createObjectURL(recBlob);
+        player.className='on';
+        checkEnable();
+        stream.getTracks().forEach(t=>t.stop());
+      };
+      mediaRecorder.start();isRec=true;
+      recBtn.classList.add('recording');
+      recLbl.textContent='Recording… tap to stop';
+      waveEl.classList.add('on');timerEl.classList.add('on');secs=0;
+      timerInt=setInterval(()=>{
+        secs++;
+        const m=Math.floor(secs/60),s=secs%60;
+        timerEl.textContent=`${m}:${s.toString().padStart(2,'0')}`;
+        if(secs>=60)stopRec();
+      },1000);
+    }catch(e){recLbl.textContent='Microphone unavailable — upload a file instead';}
+  }else stopRec();
+});
+
+function stopRec(){
+  if(mediaRecorder&&isRec){
+    mediaRecorder.stop();isRec=false;
+    recBtn.classList.remove('recording');
+    recLbl.textContent='Tap to record again';
+    waveEl.classList.remove('on');clearInterval(timerInt);
+  }
+}
+
+fileIn.addEventListener('change',e=>{
+  const f=e.target.files[0];
+  if(f){upFile=f;audioBlob=f;player.src=URL.createObjectURL(f);player.className='on';
+    document.querySelector('.up-lbl').innerHTML=`<i class="ti ti-check"></i>${f.name}`;checkEnable();}
+});
+$('upZone').addEventListener('click',()=>fileIn.click());
+
+locBtn.addEventListener('click',()=>{
+  if(!navigator.geolocation){locTxt.textContent='Not supported';return;}
+  locBtn.textContent='Locating…';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    userLat=pos.coords.latitude.toFixed(4);userLon=pos.coords.longitude.toFixed(4);
+    locTxt.textContent=`📍 ${userLat}°, ${userLon}°`;
+    locBtn.innerHTML='<i class="ti ti-map-pin"></i> Located';
+  },()=>{locBtn.innerHTML='<i class="ti ti-map-pin"></i> Use my location';locTxt.textContent='Unavailable';});
+});
+
+async function extractAudioFeatures(blob){
+  const arrayBuffer=await blob.arrayBuffer();
+  const audioCtx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:48000});
+  let audioBuffer;
+  try{audioBuffer=await audioCtx.decodeAudioData(arrayBuffer);}
+  catch(e){await audioCtx.close();return null;}
+  const channelData=audioBuffer.getChannelData(0);
+  const sr=audioBuffer.sampleRate;
+  const duration=audioBuffer.duration;
+  const sample=channelData.slice(0,Math.min(10000,channelData.length));
+  let crossings=0;
+  for(let i=1;i<sample.length;i++){if((sample[i]>=0)!==(sample[i-1]>=0))crossings++;}
+  const zcr=crossings/sample.length;
+  const N=Math.min(1024,channelData.length);
+  const seg=channelData.slice(0,N);
+  const low=Array.from(seg).filter((_,i)=>i<N*0.1).reduce((s,v)=>s+v*v,0)/N;
+  const mid=Array.from(seg).filter((_,i)=>i>=N*0.1&&i<N*0.4).reduce((s,v)=>s+v*v,0)/N;
+  const high=Array.from(seg).filter((_,i)=>i>=N*0.4).reduce((s,v)=>s+v*v,0)/N;
+  const total=low+mid+high+0.0001;
+  const minLag=Math.floor(sr/8000),maxLag=Math.floor(sr/200);
+  let bestLag=minLag,bestCorr=-Infinity;
+  for(let lag=minLag;lag<Math.min(maxLag,channelData.length/2);lag++){
+    let corr=0;for(let i=0;i<Math.min(512,channelData.length-lag);i++)corr+=channelData[i]*channelData[i+lag];
+    if(corr>bestCorr){bestCorr=corr;bestLag=lag;}
+  }
+  await audioCtx.close();
+  return{duration:Math.round(duration*10)/10,estimatedFrequency:Math.round(sr/bestLag),
+    zcr:Math.round(zcr*1000)/1000,
+    bandEnergies:{lowPct:Math.round(low/total*100),midPct:Math.round(mid/total*100),highPct:Math.round(high/total*100)},
+    peakAmplitude:Math.round(Math.max(...Array.from(sample).map(Math.abs))*100)/100};
+}
+
+idBtn.addEventListener('click',analyse);
+
+async function analyse(){
+  idBtn.disabled=true;
+  resWrap.classList.add('on');
+  loadCard.style.display='block';resCard.style.display='none';
+  loadTxt.textContent='Extracting audio features…';
+  
+  let featureDesc='No audio features available.';
+  try{
+    const f=await extractAudioFeatures(audioBlob);
+    if(f)featureDesc=`Audio features: duration ${f.duration}s, estimated fundamental ${f.estimatedFrequency}Hz, ZCR ${f.zcr} (higher=tonal), band energy low ${f.bandEnergies.lowPct}% / mid ${f.bandEnergies.midPct}% / high ${f.bandEnergies.highPct}%, peak amplitude ${f.peakAmplitude}.`;
+  }catch(e){}
+  loadTxt.textContent='Identifying species with Claude…';
+  const locCtx=userLat?`Location: lat ${userLat}, lon ${userLon} (Australia).`:'Location: Australia (unspecified).';
+  const week=Math.ceil((new Date().getMonth()+1)*4.33);
+  const prompt=`You are an expert Australian ornithologist and bioacoustics specialist. Analyse these acoustic features from a bird call recording and identify the most likely Australian species.
+
+${featureDesc}
+${locCtx}
+Week of year: ${week}
+
+Acoustic guide:
+- Fundamental <1000Hz: large birds (kookaburra, cockatoo, raven, currawong)
+- Fundamental 1000-3000Hz: medium birds (magpie, butcherbird, honeyeater, rosella)
+- Fundamental >3000Hz: small birds (wren, thornbill, finch, silvereye)
+- High ZCR (>0.05): tonal/whistling. Low ZCR: complex/chattering.
+
+Respond ONLY with valid JSON, no markdown:
+{"identified":true,"confidence":"high|medium|low","topResults":[{"species":"Common Name","scientificName":"Scientific name","score":0.87},{"species":"Name 2","scientificName":"Sci name 2","score":0.45},{"species":"Name 3","scientificName":"Sci name 3","score":0.23}],"primarySpecies":{"commonName":"string","scientificName":"string","endemic":true|false,"threatened":false|"Vulnerable"|"Endangered"|"Critically Endangered","habitat":["string"],"description":"2-3 sentences","callDescription":"1-2 sentences about its call matching these features","funFact":"string"}}
+If not determinable: {"identified":false,"reason":"string"}
+Only real Australian birds.`;
+  try{
+    const r=await fetch('/api/identify',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await r.json();
+    if(d.error){throw new Error(d.error.message);}
+    const txt=d.content.map(i=>i.text||'').join('').replace(/```json|```/g,'').trim();
+    const result=JSON.parse(txt);
+    if(!result.identified){
+      loadCard.style.display='none';resCard.style.display='block';
+      $('birdCommon').textContent=result.reason||'Could not identify — try a clearer recording.';
+      $('birdSci').textContent='';idBtn.disabled=false;checkEnable();return;
+    }
+    renderResult(result);
+    loadTxt.textContent='Fetching iNaturalist sightings…';
+    await loadINat(result.primarySpecies.scientificName);
+  }catch(e){
+    loadCard.style.display='none';resCard.style.display='block';
+    $('birdCommon').textContent='Error: '+(e.message||'Analysis failed. Check your API key and try again.');
+    $('birdSci').textContent='';
+  }
+  loadCard.style.display='none';idBtn.disabled=false;checkEnable();
+}
+
+function renderResult(r){
+  const p=r.primarySpecies;
+  const topScore=r.topResults&&r.topResults[0]?r.topResults[0].score:0;
+  const confClass=topScore>0.7?'b-hi':topScore>0.4?'b-med':'b-lo';
+  $('confBadge').textContent=`${Math.round(topScore*100)}% confidence`;
+  $('confBadge').className='badge '+confClass;
+  if(r.topResults&&r.topResults.length){
+    const maxScore=r.topResults[0].score;
+    $('bnetResults').innerHTML=`<div class="birdnet-title"><span>Acoustic matches</span><span class="birdnet-badge">BirdNET pipeline</span></div>`+
+      r.topResults.map(res=>`<div class="bnet-item"><span class="bnet-name" title="${res.species}">${res.species}</span><div class="bnet-bar-wrap"><div class="bnet-bar" style="width:${Math.round(res.score/maxScore*100)}%"></div></div><span class="bnet-pct">${Math.round(res.score*100)}%</span></div>`).join('');
+  }
+  $('birdCommon').textContent=p.commonName;
+  $('birdSci').textContent=p.scientificName;
+  const tagsEl=$('birdTags');tagsEl.innerHTML='';
+  if(p.endemic)tagsEl.innerHTML+=`<span class="tag tag-en">Endemic</span>`;
+  if(p.threatened&&p.threatened!==false)tagsEl.innerHTML+=`<span class="tag tag-th">⚠ ${p.threatened}</span>`;
+  (p.habitat||[]).slice(0,3).forEach(h=>tagsEl.innerHTML+=`<span class="tag">${h}</span>`);
+  $('birdDesc').textContent=p.description||'';
+  $('callDesc').textContent=p.callDescription?`"${p.callDescription}"`:'' ;
+  $('funFact').textContent=p.funFact||'';
+  resCard.style.display='block';
+}
+
+async function loadINat(sciName){
+  const sec=$('inatSec');sec.style.display='block';
+  $('inatStats').innerHTML='<p style="font-size:12px;color:#aaa">Fetching…</p>';
+  $('obsList').innerHTML='';
+  try{
+    const [taxRes,obsRes]=await Promise.all([
+      fetch(`https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(sciName)}&rank=species&per_page=1`).then(r=>r.json()),
+      fetch(`https://api.inaturalist.org/v1/observations?taxon_name=${encodeURIComponent(sciName)}&place_id=6744&quality_grade=research&order=desc&order_by=created_at&per_page=5`).then(r=>r.json())
+    ]);
+    const taxon=taxRes.results&&taxRes.results[0];
+    const obs=obsRes.results||[];
+    const total=obsRes.total_results||0;
+    if(taxon){
+      if(taxon.default_photo&&taxon.default_photo.medium_url){
+        const img=$('birdPhoto');img.src=taxon.default_photo.medium_url;img.className='bird-photo on';img.onerror=()=>img.className='bird-photo';
+      }
+      $('inatLink').href=`https://www.inaturalist.org/taxa/${taxon.id}`;
+    }
+    const observers=new Set(obs.map(o=>o.user&&o.user.login).filter(Boolean)).size;
+    $('inatStats').innerHTML=`<div class="stat-card"><span class="stat-num">${total.toLocaleString()}</span><div class="stat-lbl">AU sightings</div></div><div class="stat-card"><span class="stat-num">${obs.length}</span><div class="stat-lbl">recent</div></div><div class="stat-card"><span class="stat-num">${observers}</span><div class="stat-lbl">observers</div></div>`;
+    $('obsList').innerHTML=obs.length?obs.map(o=>{
+      const place=o.place_guess||'Location withheld';
+      const date=o.observed_on?new Date(o.observed_on).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}):'—';
+      return `<div class="obs-item"><div class="obs-dot"></div><span class="obs-place">${place}</span><span class="obs-date">${date}</span></div>`;
+    }).join(''):'<p style="font-size:12px;color:#aaa">No recent research-grade sightings found.</p>';
+  }catch(e){$('inatStats').innerHTML='<p style="font-size:12px;color:#aaa">Could not load iNaturalist data.</p>';}
+}
+
+initAudio();
+</script>
+</body>
+</html>

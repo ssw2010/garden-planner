@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enoggera Creek — Wildlife Visitors</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root {
+    --moss: #2d4a2d;
+    --fern: #4a7c59;
+    --lichen: #8fb896;
+    --cream: #f5f0e8;
+    --bark: #6b4f3a;
+    --gold: #c9a84c;
+    --sky: #7db8d4;
+    --dusk: #1a2e1a;
+    --mist: rgba(245,240,232,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dusk);
+    color: var(--cream);
+    font-family: 'Lato', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 80%, rgba(45,74,45,0.6) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 20%, rgba(74,124,89,0.3) 0%, transparent 50%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, #0d1a0d 0%, #1a2e1a 100%);
+    z-index: -1;
+  }
+
+  .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .particle { position: absolute; border-radius: 50%; opacity: 0; animation: float linear infinite; }
+  @keyframes float {
+    0% { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(-10vh) translateX(40px) rotate(360deg); opacity: 0; }
+  }
+
+  header {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 60px 20px 40px;
+    border-bottom: 1px solid rgba(143,184,150,0.2);
+  }
+
+  .header-eyebrow {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 300;
+    letter-spacing: 0.3em; color: var(--lichen); text-transform: uppercase;
+    margin-bottom: 16px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.2s;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 700; line-height: 1.1; color: var(--cream);
+    margin-bottom: 8px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.4s;
+  }
+  h1 em { font-style: italic; color: var(--lichen); }
+
+  .header-sub {
+    font-size: 0.9rem; color: rgba(245,240,232,0.5); letter-spacing: 0.05em;
+    margin-top: 12px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.6s;
+  }
+  .coords {
+    font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--gold);
+    letter-spacing: 0.1em; margin-top: 8px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.8s;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Controls */
+  .controls {
+    position: relative; z-index: 1;
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    padding: 30px 20px;
+  }
+
+  .tab-btn {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 10px 28px;
+    border: 1px solid rgba(143,184,150,0.3);
+    background: transparent; color: var(--lichen);
+    cursor: pointer; transition: all 0.3s ease;
+    position: relative; overflow: hidden;
+  }
+  .tab-btn::before {
+    content: ''; position: absolute; inset: 0;
+    background: var(--fern); transform: scaleX(0);
+    transform-origin: left; transition: transform 0.3s ease; z-index: -1;
+  }
+  .tab-btn:hover::before, .tab-btn.active::before { transform: scaleX(1); }
+  .tab-btn.active, .tab-btn:hover { color: var(--cream); border-color: var(--fern); }
+
+  .season-filter {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.1em;
+    padding: 10px 16px; border: 1px solid rgba(143,184,150,0.2);
+    background: rgba(45,74,45,0.3); color: var(--lichen);
+    cursor: pointer; outline: none; appearance: none; -webkit-appearance: none;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238fb896'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    position: relative; z-index: 1;
+    display: flex; gap: 0; justify-content: center;
+    border-top: 1px solid rgba(143,184,150,0.1);
+    border-bottom: 1px solid rgba(143,184,150,0.1);
+    margin-bottom: 32px;
+  }
+  .stat {
+    flex: 1; max-width: 200px; padding: 20px;
+    text-align: center; border-right: 1px solid rgba(143,184,150,0.1);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--gold); display: block; line-height: 1; }
+  .stat-label {
+    font-family: 'DM Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.2em; color: rgba(143,184,150,0.6);
+    text-transform: uppercase; margin-top: 4px; display: block;
+  }
+
+  /* View toggle */
+  .view-toggle {
+    position: relative; z-index: 1;
+    display: flex; justify-content: center; gap: 0; margin-bottom: 28px;
+  }
+  .view-btn {
+    font-family: 'DM Mono', monospace; font-size: 0.68rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 9px 24px;
+    border: 1px solid rgba(143,184,150,0.25);
+    background: transparent; color: rgba(143,184,150,0.5);
+    cursor: pointer; transition: all 0.25s ease;
+  }
+  .view-btn:first-child { border-right: none; }
+  .view-btn.active { background: rgba(74,124,89,0.35); color: var(--cream); border-color: var(--fern); }
+  .view-btn:hover:not(.active) { color: var(--lichen); border-color: rgba(143,184,150,0.4); }
+
+  /* Section label */
+  .section-label {
+    font-family: 'DM Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    color: rgba(143,184,150,0.5); text-align: center;
+    margin-bottom: 28px; position: relative; z-index: 1;
+  }
+  .section-label::before { content: '— '; color: rgba(143,184,150,0.25); }
+  .section-label::after { content: ' —'; color: rgba(143,184,150,0.25); }
+
+  /* Map */
+  .map-container {
+    position: relative; z-index: 1;
+    max-width: 1300px; margin: 0 auto 60px;
+    padding: 0 20px; display: none;
+  }
+  .map-container.visible { display: block; }
+
+  #map {
+    width: 100%; height: 560px;
+    border: 1px solid rgba(143,184,150,0.2);
+    background: #0d1a0d;
+  }
+
+
+  .map-overlay-loading {
+    position: absolute; top: 0; left: 20px; right: 20px; height: 560px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(13,26,13,0.82); z-index: 500;
+    gap: 16px; transition: opacity 0.4s;
+    pointer-events: none;
+  }
+  .map-overlay-loading.hidden { opacity: 0; pointer-events: none; }
+  .map-overlay-text {
+    font-family: 'DM Mono', monospace; font-size: 0.68rem;
+    letter-spacing: 0.2em; color: var(--lichen); text-transform: uppercase;
+  }
+
+  /* Grid */
+  .grid-container {
+    position: relative; z-index: 1;
+    max-width: 1300px; margin: 0 auto; padding: 0 20px 80px;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+  .species-card {
+    border: 1px solid rgba(143,184,150,0.15);
+    background: rgba(26,46,26,0.6); backdrop-filter: blur(10px);
+    overflow: hidden; cursor: pointer; transition: all 0.4s ease;
+    opacity: 0; animation: cardIn 0.5s ease forwards; position: relative;
+  }
+  .species-card:hover { border-color: var(--lichen); transform: translateY(-4px); background: rgba(45,74,45,0.7); }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-img-wrap { width: 100%; height: 180px; overflow: hidden; position: relative; background: rgba(45,74,45,0.4); }
+  .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; filter: saturate(0.85); }
+  .species-card:hover .card-img-wrap img { transform: scale(1.06); }
+  .card-img-wrap .no-img { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: rgba(143,184,150,0.3); }
+
+  .card-type-badge {
+    position: absolute; top: 10px; right: 10px;
+    font-family: 'DM Mono', monospace; font-size: 0.58rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 4px 8px; background: rgba(13,26,13,0.85); border: 1px solid; backdrop-filter: blur(4px);
+  }
+
+  .badge-bird { border-color: var(--sky); color: var(--sky); }
+  .badge-mammal { border-color: #e8b48c; color: #e8b48c; }
+  .badge-bee { border-color: var(--gold); color: var(--gold); }
+  .badge-butterfly { border-color: #d4a4e8; color: #d4a4e8; }
+  .badge-moth { border-color: #c8b4a0; color: #c8b4a0; }
+  .badge-fly { border-color: #a8c884; color: #a8c884; }
+  .badge-wasp { border-color: #e8c44c; color: #e8c44c; }
+  .badge-beetle { border-color: #a4d4b4; color: #a4d4b4; }
+  .badge-other { border-color: var(--lichen); color: var(--lichen); }
+
+  .card-body { padding: 16px 18px 18px; }
+  .card-common { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--cream); line-height: 1.3; margin-bottom: 2px; }
+  .card-sci { font-family: 'Lato', sans-serif; font-size: 0.75rem; font-style: italic; color: rgba(143,184,150,0.6); margin-bottom: 12px; }
+  .card-meta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .obs-count { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--gold); letter-spacing: 0.1em; }
+  .last-seen { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: rgba(245,240,232,0.35); letter-spacing: 0.05em; }
+  .native-tag { font-family: 'DM Mono', monospace; font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 2px 6px; border: 1px solid var(--fern); color: var(--lichen); }
+
+  /* Loading */
+  .loading-state { text-align: center; padding: 80px 20px; z-index: 1; position: relative; }
+  .spinner { width: 48px; height: 48px; border: 2px solid rgba(143,184,150,0.15); border-top-color: var(--lichen); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 24px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.2em; color: var(--lichen); text-transform: uppercase; }
+
+  /* Empty / Error */
+  .empty-state { text-align: center; padding: 80px 20px; z-index: 1; position: relative; }
+  .empty-state p { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: rgba(143,184,150,0.5); letter-spacing: 0.1em; }
+  .error-state { text-align: center; padding: 40px 20px; background: rgba(180,60,60,0.1); border: 1px solid rgba(180,60,60,0.3); max-width: 600px; margin: 0 auto; }
+  .error-state p { font-size: 0.85rem; color: #e8a0a0; line-height: 1.6; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,20,10,0.85); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--dusk); border: 1px solid rgba(143,184,150,0.25); max-width: 580px; width: 100%; max-height: 90vh; overflow-y: auto; animation: modalIn 0.3s ease; }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  .modal-img { width: 100%; height: 260px; object-fit: cover; display: block; filter: saturate(0.85); }
+  .modal-body { padding: 28px 30px 32px; }
+  .modal-type { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--lichen); margin-bottom: 8px; }
+  .modal-common { font-family: 'Playfair Display', serif; font-size: 1.8rem; line-height: 1.2; color: var(--cream); margin-bottom: 4px; }
+  .modal-sci { font-style: italic; font-size: 0.85rem; color: rgba(143,184,150,0.6); margin-bottom: 20px; }
+  .modal-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .modal-fact { padding: 12px; background: rgba(45,74,45,0.3); border-left: 2px solid var(--fern); }
+  .fact-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--lichen); display: block; margin-bottom: 4px; }
+  .fact-value { font-size: 0.9rem; color: var(--cream); }
+  .modal-link { display: inline-block; font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--lichen); text-decoration: none; border: 1px solid rgba(143,184,150,0.3); padding: 10px 20px; transition: all 0.3s; margin-right: 10px; }
+  .modal-link:hover { background: var(--fern); color: var(--cream); border-color: var(--fern); }
+  .modal-close { float: right; background: none; border: none; color: rgba(143,184,150,0.5); font-size: 1.4rem; cursor: pointer; margin-top: -8px; padding: 4px; transition: color 0.2s; }
+  .modal-close:hover { color: var(--cream); }
+
+  footer { position: relative; z-index: 1; text-align: center; padding: 30px 20px; border-top: 1px solid rgba(143,184,150,0.1); font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; color: rgba(143,184,150,0.3); }
+  footer a { color: rgba(143,184,150,0.5); text-decoration: none; }
+  footer a:hover { color: var(--lichen); }
+  .attrib-link { margin-top: 6px; display: block; }
+
+  /* Leaflet dark theme */
+  .leaflet-container { background: #0d1a0d !important; font-family: 'DM Mono', monospace !important; }
+  .leaflet-tile { filter: saturate(0.5) brightness(0.45) hue-rotate(90deg); }
+  .leaflet-control-zoom a { background: rgba(26,46,26,0.95) !important; color: var(--lichen) !important; border-color: rgba(143,184,150,0.2) !important; font-family: monospace; }
+  .leaflet-control-zoom a:hover { background: rgba(74,124,89,0.8) !important; }
+  .leaflet-control-attribution { background: rgba(13,26,13,0.7) !important; color: rgba(143,184,150,0.35) !important; font-size: 9px !important; }
+  .leaflet-control-attribution a { color: rgba(143,184,150,0.5) !important; }
+  .leaflet-popup-content-wrapper { background: rgba(20,38,20,0.97) !important; border: 1px solid rgba(143,184,150,0.25) !important; border-radius: 0 !important; color: var(--cream) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important; }
+  .leaflet-popup-tip { background: rgba(20,38,20,0.97) !important; }
+  .leaflet-popup-content { margin: 14px 16px !important; min-width: 180px; }
+  .leaflet-popup-close-button { color: rgba(143,184,150,0.6) !important; top: 8px !important; right: 8px !important; font-size: 16px !important; }
+
+  .popup-img { width: 100%; height: 100px; object-fit: cover; display: block; margin-bottom: 10px; filter: saturate(0.75); }
+  .popup-name { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--cream); margin-bottom: 2px; }
+  .popup-sci { font-style: italic; font-size: 0.7rem; color: rgba(143,184,150,0.6); margin-bottom: 8px; }
+  .popup-meta { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--lichen); letter-spacing: 0.06em; margin-bottom: 4px; }
+  .popup-link { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--gold); text-decoration: none; letter-spacing: 0.06em; }
+  .popup-link:hover { color: var(--lichen); }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dusk); }
+  ::-webkit-scrollbar-thumb { background: var(--moss); }
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<header>
+  <div class="header-eyebrow">Southeast Queensland · Biodiversity Explorer</div>
+  <h1>Enoggera Creek<br><em>Wildlife Visitors</em></h1>
+  <p class="header-sub">Pollinators & birds observed in the catchment — via iNaturalist</p>
+  <p class="coords">27.4°S · 152.9°E · Catchment Area ~130 km²</p>
+</header>
+
+<div class="controls">
+  <button class="tab-btn active" data-type="pollinators">🌺 Pollinators</button>
+  <button class="tab-btn" data-type="birds">🦜 Birds</button>
+  <button class="tab-btn" data-type="mammals">🦘 Mammals</button>
+  <select class="season-filter" id="seasonFilter">
+    <option value="">All seasons</option>
+    <option value="12,1,2">Summer (Dec–Feb)</option>
+    <option value="3,4,5">Autumn (Mar–May)</option>
+    <option value="6,7,8">Winter (Jun–Aug)</option>
+    <option value="9,10,11">Spring (Sep–Nov)</option>
+  </select>
+</div>
+
+<div class="stats-bar">
+  <div class="stat">
+    <span class="stat-num" id="statSpecies">—</span>
+    <span class="stat-label">Species</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" id="statObs">—</span>
+    <span class="stat-label">Observations</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" id="statRecent">—</span>
+    <span class="stat-label">Last 30 Days</span>
+  </div>
+</div>
+
+<div class="view-toggle">
+  <button class="view-btn active" id="btnGrid">⊞ Species</button>
+  <button class="view-btn" id="btnMap">⬡ Map</button>
+</div>
+
+<div class="section-label" id="sectionLabel">Loading observations…</div>
+
+<!-- Map view -->
+<div class="map-container" id="mapContainer">
+  <div id="map"></div>
+  <div class="map-overlay-loading" id="mapLoading">
+    <div class="spinner"></div>
+    <div class="map-overlay-text">Fetching observation locations…</div>
+  </div>
+</div>
+
+<!-- Grid view -->
+<div class="grid-container" id="gridContainer">
+  <div id="loadingState" class="loading-state">
+    <div class="spinner"></div>
+    <p class="loading-text">Fetching from iNaturalist…</p>
+  </div>
+  <div id="errorState" class="error-state" style="display:none">
+    <p id="errorMsg"></p>
+  </div>
+  <div class="grid" id="speciesGrid"></div>
+</div>
+
+<footer>
+  Data sourced from <a href="https://www.inaturalist.org" target="_blank">iNaturalist</a> · Enoggera Creek Catchment, SEQ, Australia
+  <a class="attrib-link" href="https://www.inaturalist.org/places/enoggera-creek" target="_blank">Contribute your own observations →</a>
+</footer>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <img class="modal-img" id="modalImg" src="" alt="" style="display:none">
+    <div class="modal-body">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div class="modal-type" id="modalType"></div>
+      <div class="modal-common" id="modalCommon"></div>
+      <div class="modal-sci" id="modalSci"></div>
+      <div class="modal-facts" id="modalFacts"></div>
+      <div id="modalLinks"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────────────────────
+const BOUNDS = { nelat: -27.35, nelng: 152.97, swlat: -27.52, swlng: 152.82 };
+const CENTER = [(BOUNDS.nelat + BOUNDS.swlat) / 2, (BOUNDS.nelng + BOUNDS.swlng) / 2];
+
+const TAXON_CONFIG = {
+  pollinators: [
+    { id: 47158, name: 'Bees', badge: 'bee', emoji: '🐝' },
+    { id: 47157, name: 'Butterflies & Moths', badge: 'butterfly', emoji: '🦋' },
+    { id: 47822, name: 'Flies (pollinators)', badge: 'fly', emoji: '🪰' },
+    { id: 47336, name: 'Wasps', badge: 'wasp', emoji: '🐝' },
+    { id: 47208, name: 'Beetles', badge: 'beetle', emoji: '🪲' },
+  ],
+  birds: [{ id: 3, name: 'Birds', badge: 'bird', emoji: '🦜' }],
+  mammals: [{ id: 40151, name: 'Mammals', badge: 'mammal', emoji: '🦘' }]
+};
+
+// ── PARTICLES ──────────────────────────────────────────────────────────────────
+(function initParticles() {
+  const container = document.getElementById('particles');
+  const colors = ['rgba(143,184,150,0.4)','rgba(201,168,76,0.3)','rgba(125,184,212,0.3)','rgba(212,164,232,0.25)'];
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 4 + 1;
+    p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${Math.random()*20+15}s;animation-delay:${Math.random()*15}s;`;
+    container.appendChild(p);
+  }
+})();
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let currentType = 'pollinators';
+let currentMonths = '';
+let allResults = [];
+let currentView = 'grid';
+let mapInstance = null;
+let markerLayer = null;
+let mapDataLoaded = false;
+
+// ── JSONP ──────────────────────────────────────────────────────────────────────
+let _cbCounter = 0;
+function jsonp(url, params) {
+  return new Promise((resolve, reject) => {
+    const cbName = `_inat_cb_${_cbCounter++}`;
+    params.append('callback', cbName);
+    const script = document.createElement('script');
+    script.src = `${url}?${params}`;
+    const timer = setTimeout(() => { cleanup(); reject(new Error('Request timed out')); }, 20000);
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+    function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
+    script.onerror = () => { cleanup(); reject(new Error('Failed to load')); };
+    document.head.appendChild(script);
+  });
+}
+
+// ── API — Species counts ───────────────────────────────────────────────────────
+async function fetchSpecies(taxonId, months) {
+  const params = new URLSearchParams({
+    taxon_id: taxonId, nelat: BOUNDS.nelat, nelng: BOUNDS.nelng,
+    swlat: BOUNDS.swlat, swlng: BOUNDS.swlng,
+    per_page: 50, order: 'desc', order_by: 'observations_count', verifiable: 'true',
+  });
+  if (months) params.append('months', months);
+  const data = await jsonp('https://api.inaturalist.org/v1/observations/species_counts', params);
+  return data.results || [];
+}
+
+// ── API — Individual observations with coordinates ────────────────────────────
+async function fetchObservationPoints(page = 1) {
+  const taxonIds = TAXON_CONFIG[currentType].map(t => t.id).join(',');
+  const params = new URLSearchParams({
+    taxon_id: taxonIds, nelat: BOUNDS.nelat, nelng: BOUNDS.nelng,
+    swlat: BOUNDS.swlat, swlng: BOUNDS.swlng,
+    per_page: 200, page,
+    order: 'desc', order_by: 'observed_on', verifiable: 'true',
+    geoprivacy: 'open',
+  });
+  if (currentMonths) params.append('months', currentMonths);
+  const data = await jsonp('https://api.inaturalist.org/v1/observations', params);
+  return data;
+}
+
+async function fetchRecentCount() {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const dateStr = thirtyDaysAgo.toISOString().split('T')[0];
+  const taxons = TAXON_CONFIG[currentType].map(t => t.id).join(',');
+  const params = new URLSearchParams({
+    taxon_id: taxons, nelat: BOUNDS.nelat, nelng: BOUNDS.nelng,
+    swlat: BOUNDS.swlat, swlng: BOUNDS.swlng,
+    d1: dateStr, verifiable: 'true', per_page: 1,
+  });
+  try {
+    const data = await jsonp('https://api.inaturalist.org/v1/observations', params);
+    return data.total_results || 0;
+  } catch { return '—'; }
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────────────
+function getBadgeClass(taxonName) {
+  const n = (taxonName || '').toLowerCase();
+  if (n.includes('bee') && !n.includes('beetle')) return 'bee';
+  if (n.includes('butterfly')) return 'butterfly';
+  if (n.includes('moth')) return 'moth';
+  if (n.includes('fly') || n.includes('diptera') || n.includes('hoverfly')) return 'fly';
+  if (n.includes('wasp')) return 'wasp';
+  if (n.includes('beetle') || n.includes('coleoptera')) return 'beetle';
+  if (n.includes('bird') || n.includes('aves')) return 'bird';
+  if (n.includes('mammal') || n.includes('mammalia')) return 'mammal';
+  return 'other';
+}
+function getEmoji(b) { return {bee:'🐝',butterfly:'🦋',moth:'🌙',fly:'🪰',wasp:'🐝',beetle:'🪲',bird:'🦜',mammal:'🦘',other:'🌿'}[b] || '🌿'; }
+function formatNum(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : n; }
+
+// ── MAP ────────────────────────────────────────────────────────────────────────
+function initMap() {
+  if (mapInstance) return;
+
+  mapInstance = L.map('map', {
+    center: CENTER, zoom: 12,
+    zoomControl: true,
+    attributionControl: true,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+    maxZoom: 19,
+  }).addTo(mapInstance);
+
+  // Draw catchment bounding box
+  L.rectangle(
+    [[BOUNDS.swlat, BOUNDS.swlng], [BOUNDS.nelat, BOUNDS.nelng]],
+    { color: '#4a7c59', weight: 1.5, fill: false, dashArray: '6 4', opacity: 0.5 }
+  ).addTo(mapInstance);
+
+  markerLayer = L.layerGroup().addTo(mapInstance);
+}
+
+async function loadMapData() {
+  initMap();
+  const loadingEl = document.getElementById('mapLoading');
+  loadingEl.classList.remove('hidden');
+
+  markerLayer.clearLayers();
+
+  try {
+    // Fetch observations for map markers
+    const pages = [1];
+    const fetches = pages.map(p => fetchObservationPoints(p));
+    const results = await Promise.all(fetches);
+
+    const allObs = results.flatMap(r => r.results || []);
+    const total = results[0]?.total_results || 0;
+
+    const sampleMarkers = [];
+
+    allObs.forEach((obs, idx) => {
+      const lat = obs.location ? parseFloat(obs.location.split(',')[0]) : null;
+      const lng = obs.location ? parseFloat(obs.location.split(',')[1]) : null;
+      if (!lat || !lng || isNaN(lat) || isNaN(lng)) return;
+
+      sampleMarkers.push({ lat, lng, obs });
+    });
+
+    // Individual dot markers for observations
+    sampleMarkers.forEach(({ lat, lng, obs }) => {
+      const taxon = obs.taxon;
+      if (!taxon) return;
+      const badgeClass = getBadgeClass(taxon.iconic_taxon_name || taxon.name);
+      const commonName = taxon.preferred_common_name || taxon.name;
+      const photoUrl = taxon.default_photo?.square_url;
+      const obsDate = obs.observed_on ? new Date(obs.observed_on).toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' }) : 'Date unknown';
+
+      const dotColors = { bee:'#c9a84c', butterfly:'#d4a4e8', moth:'#c8b4a0', fly:'#a8c884', wasp:'#e8c44c', beetle:'#a4d4b4', bird:'#7db8d4', mammal:'#e8b48c', other:'#8fb896' };
+      const color = dotColors[badgeClass] || '#8fb896';
+
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid rgba(13,26,13,0.8);box-shadow:0 0 6px ${color}88;"></div>`,
+        iconSize: [10, 10],
+        iconAnchor: [5, 5],
+      });
+
+      const marker = L.marker([lat, lng], { icon });
+
+      const popupHtml = `
+        ${photoUrl ? `<img class="popup-img" src="${photoUrl}" alt="${commonName}">` : ''}
+        <div class="popup-name">${commonName}</div>
+        <div class="popup-sci">${taxon.name}</div>
+        <div class="popup-meta">📅 ${obsDate}</div>
+        <div class="popup-meta" style="margin-top:3px">🏷 ${badgeClass}</div>
+        <a class="popup-link" href="https://www.inaturalist.org/observations/${obs.id}" target="_blank" style="display:inline-block;margin-top:8px;">View on iNaturalist →</a>
+      `;
+      marker.bindPopup(popupHtml, { maxWidth: 220, offset: [0, -4] });
+      markerLayer.addLayer(marker);
+    });
+
+    loadingEl.classList.add('hidden');
+    mapDataLoaded = true;
+
+  } catch (err) {
+    loadingEl.classList.add('hidden');
+    console.error('Map fetch error:', err);
+  }
+}
+
+// ── RENDER CARDS ───────────────────────────────────────────────────────────────
+function renderCards(results) {
+  const grid = document.getElementById('speciesGrid');
+  grid.innerHTML = '';
+  if (!results.length) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('sectionLabel').textContent = 'No observations found for this filter';
+    return;
+  }
+  results.forEach((item, i) => {
+    const taxon = item.taxon;
+    if (!taxon) return;
+    const badgeClass = getBadgeClass(taxon.iconic_taxon_name || taxon.name);
+    const emoji = getEmoji(badgeClass);
+    const photoUrl = taxon.default_photo?.medium_url;
+    const commonName = taxon.preferred_common_name || taxon.name;
+
+    const card = document.createElement('div');
+    card.className = 'species-card';
+    card.style.animationDelay = `${i * 0.05}s`;
+    card.innerHTML = `
+      <div class="card-img-wrap">
+        ${photoUrl ? `<img src="${photoUrl}" alt="${commonName}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+        <div class="no-img" style="display:${photoUrl ? 'none' : 'flex'}">${emoji}</div>
+        <span class="card-type-badge badge-${badgeClass}">${badgeClass}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-common">${commonName}</div>
+        <div class="card-sci">${taxon.name}</div>
+        <div class="card-meta">
+          <span class="obs-count">${formatNum(item.count)} obs</span>
+          ${taxon.establishment_means === 'native' ? '<span class="native-tag">Native</span>' : ''}
+        </div>
+      </div>
+    `;
+    card.addEventListener('click', () => openModal(item));
+    grid.appendChild(card);
+  });
+}
+
+// ── MODAL ──────────────────────────────────────────────────────────────────────
+function openModal(item) {
+  const taxon = item.taxon;
+  const badgeClass = getBadgeClass(taxon.iconic_taxon_name || taxon.name);
+  const commonName = taxon.preferred_common_name || taxon.name;
+  document.getElementById('modalType').textContent = badgeClass.toUpperCase();
+  document.getElementById('modalCommon').textContent = commonName;
+  document.getElementById('modalSci').textContent = taxon.name;
+  const img = document.getElementById('modalImg');
+  if (taxon.default_photo?.medium_url) { img.src = taxon.default_photo.medium_url; img.alt = commonName; img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+  document.getElementById('modalFacts').innerHTML = `
+    <div class="modal-fact"><span class="fact-label">Observations</span><span class="fact-value">${item.count.toLocaleString()}</span></div>
+    <div class="modal-fact"><span class="fact-label">Status</span><span class="fact-value">${taxon.establishment_means || 'Unknown'}</span></div>
+    <div class="modal-fact"><span class="fact-label">Rank</span><span class="fact-value">${taxon.rank || 'species'}</span></div>
+    <div class="modal-fact"><span class="fact-label">Group</span><span class="fact-value">${taxon.iconic_taxon_name || '—'}</span></div>
+  `;
+  document.getElementById('modalLinks').innerHTML = `<a class="modal-link" href="https://www.inaturalist.org/taxa/${taxon.id}" target="_blank">View on iNaturalist →</a>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+document.getElementById('modalClose').addEventListener('click', () => document.getElementById('modalOverlay').classList.remove('open'));
+document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target === document.getElementById('modalOverlay')) document.getElementById('modalOverlay').classList.remove('open'); });
+
+// ── MAIN LOAD ──────────────────────────────────────────────────────────────────
+async function loadData() {
+  mapDataLoaded = false;
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('errorState').style.display = 'none';
+  document.getElementById('speciesGrid').innerHTML = '';
+  document.getElementById('sectionLabel').textContent = 'Loading observations…';
+  document.getElementById('statSpecies').textContent = '—';
+  document.getElementById('statObs').textContent = '—';
+  document.getElementById('statRecent').textContent = '—';
+
+  try {
+    const fetches = TAXON_CONFIG[currentType].map(t => fetchSpecies(t.id, currentMonths));
+    const results = await Promise.all(fetches);
+    const merged = {};
+    results.forEach(arr => arr.forEach(item => {
+      if (!item.taxon) return;
+      const id = item.taxon.id;
+      if (!merged[id] || merged[id].count < item.count) merged[id] = item;
+    }));
+    allResults = Object.values(merged).sort((a, b) => b.count - a.count);
+    const totalObs = allResults.reduce((s, r) => s + r.count, 0);
+    document.getElementById('statSpecies').textContent = allResults.length;
+    document.getElementById('statObs').textContent = formatNum(totalObs);
+    document.getElementById('sectionLabel').textContent = `${allResults.length} species recorded in the catchment`;
+    document.getElementById('loadingState').style.display = 'none';
+    renderCards(allResults);
+    fetchRecentCount().then(n => { document.getElementById('statRecent').textContent = n; });
+
+    // If map is visible, reload map data too
+    if (currentView === 'map') loadMapData();
+
+  } catch (err) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+    document.getElementById('errorMsg').innerHTML = `Unable to load data from iNaturalist.<br><small style="opacity:0.7">${err.message}</small><br><br>This may be a temporary API issue. You can browse directly at <a href="https://www.inaturalist.org" target="_blank" style="color:#8fb896">inaturalist.org</a>`;
+    document.getElementById('sectionLabel').textContent = 'Error loading data';
+    console.error(err);
+  }
+}
+
+// ── VIEW TOGGLE ────────────────────────────────────────────────────────────────
+document.getElementById('btnGrid').addEventListener('click', () => {
+  currentView = 'grid';
+  document.getElementById('btnGrid').classList.add('active');
+  document.getElementById('btnMap').classList.remove('active');
+  document.getElementById('gridContainer').style.display = 'block';
+  document.getElementById('mapContainer').classList.remove('visible');
+});
+
+document.getElementById('btnMap').addEventListener('click', () => {
+  currentView = 'map';
+  document.getElementById('btnMap').classList.add('active');
+  document.getElementById('btnGrid').classList.remove('active');
+  document.getElementById('gridContainer').style.display = 'none';
+  document.getElementById('mapContainer').classList.add('visible');
+
+  // Init map and load data if not yet loaded
+  setTimeout(() => {
+    initMap();
+    mapInstance.invalidateSize();
+    if (!mapDataLoaded) loadMapData();
+  }, 50);
+});
+
+// ── FILTERS ────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentType = btn.dataset.type;
+    mapDataLoaded = false;
+    loadData();
+  });
+});
+document.getElementById('seasonFilter').addEventListener('change', (e) => {
+  currentMonths = e.target.value;
+  mapDataLoaded = false;
+  loadData();
+});
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>

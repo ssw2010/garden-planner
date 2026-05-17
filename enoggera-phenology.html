@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enoggera Phenology — Seasonal Wildlife Calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f4ee;
+  --bg-card: #ffffff;
+  --ink: #1c1a14;
+  --ink-mid: #5a5747;
+  --ink-faint: #a09c8e;
+  --accent: #3d5c2a;
+  --bird: #1f4068;
+  --insect: #7a2e0e;
+  --other: #4a2e6e;
+  --fungi: #7a5c1e;
+  --mammal: #5c3d1e;
+  --reptile: #2a5c4a;
+  --border: rgba(28,26,20,0.10);
+  --border-mid: rgba(28,26,20,0.18);
+  --row-hover: rgba(28,26,20,0.04);
+  --serif: 'Playfair Display', Georgia, serif;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --radius: 6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+
+header{border-bottom:1px solid var(--border-mid);padding:2.5rem 2rem 1.75rem;max-width:1200px;margin:0 auto}
+.header-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.5rem}
+h1{font-family:var(--serif);font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:600;line-height:1.15;letter-spacing:-.01em;color:var(--ink);margin-bottom:.4rem}
+h1 em{color:var(--accent);font-style:italic}
+.header-sub{font-size:14px;color:var(--ink-mid);max-width:520px;font-weight:300}
+.header-meta{display:flex;gap:2rem;margin-top:1.25rem;flex-wrap:wrap;align-items:center}
+.meta-item{display:flex;flex-direction:column;gap:1px}
+.meta-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+.meta-value{font-size:15px;font-weight:500;color:var(--ink)}
+#load-status{font-family:var(--mono);font-size:11px;color:var(--ink-faint);transition:opacity 1.2s;margin-left:auto}
+
+main{max-width:1200px;margin:0 auto;padding:1.75rem 2rem}
+
+/* add panel */
+.add-panel{background:var(--bg-card);border:1px solid var(--border-mid);border-radius:var(--radius);padding:1.1rem 1.4rem;margin-bottom:1.75rem}
+.add-panel-header{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.add-panel-title{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mid);font-weight:500}
+.add-panel-sub{font-size:12px;color:var(--ink-faint);margin-left:4px}
+.add-panel-toggle{font-size:20px;color:var(--ink-faint);line-height:1;transition:transform .2s;margin-left:auto}
+.add-panel-toggle.open{transform:rotate(45deg)}
+.add-panel-body{display:none;margin-top:1rem}
+.add-panel-body.open{display:block}
+.search-row{display:flex;gap:8px;align-items:stretch;margin-bottom:1rem;flex-wrap:wrap}
+.search-input{flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--border-mid);border-radius:var(--radius);font-family:var(--sans);font-size:14px;background:var(--bg);color:var(--ink);outline:none}
+.search-input:focus{border-color:var(--accent)}
+.cat-select{padding:8px 10px;border:1px solid var(--border-mid);border-radius:var(--radius);font-family:var(--sans);font-size:13px;background:var(--bg);color:var(--ink);cursor:pointer;outline:none}
+.search-btn{padding:8px 18px;border-radius:var(--radius);border:none;background:var(--ink);color:var(--bg);font-family:var(--sans);font-size:13px;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.search-btn:hover{opacity:.82}
+.search-btn:disabled{opacity:.4;cursor:default}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.result-card{border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;background:var(--bg);display:flex;flex-direction:column;gap:3px;position:relative;transition:border-color .15s}
+.result-card:not(.already-added):hover{border-color:rgba(61,92,42,.5)}
+.result-card.already-added{opacity:.5}
+.result-card.already-added::after{content:'Added';position:absolute;top:8px;right:10px;font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.05em}
+.result-name{font-size:13px;font-weight:500;color:var(--ink)}
+.result-sci{font-family:var(--serif);font-style:italic;font-size:11px;color:var(--ink-faint)}
+.result-meta{font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-top:1px}
+.add-btn{margin-top:7px;padding:4px 10px;border-radius:20px;border:1px solid var(--border-mid);background:transparent;font-family:var(--sans);font-size:12px;color:var(--accent);cursor:pointer;align-self:flex-start;transition:all .15s}
+.add-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.no-results{font-size:13px;color:var(--ink-faint);padding:6px 0;font-style:italic}
+
+/* filter bar */
+.controls-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem}
+.controls-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-right:4px}
+.filter-btn{font-family:var(--sans);font-size:13px;font-weight:400;padding:5px 14px;border-radius:20px;border:1px solid var(--border-mid);background:transparent;color:var(--ink-mid);cursor:pointer;transition:all .15s}
+.filter-btn:hover{border-color:var(--ink);color:var(--ink)}
+.filter-btn.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* legend */
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:1.5rem;padding:.75rem 1.1rem;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-mid)}
+.leg-swatch{display:flex;gap:3px}
+.leg-swatch span{display:block;width:16px;height:9px;border-radius:2px}
+
+/* table */
+.table-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:780px}
+thead th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);font-weight:500;padding:9px 4px;text-align:center;background:var(--bg);border-bottom:1px solid var(--border-mid);position:sticky;top:0;z-index:2}
+thead th.name-th{text-align:left;padding-left:1.1rem;min-width:195px;z-index:3}
+thead th.notes-th{text-align:left;padding-left:10px;min-width:195px}
+.month-th{width:50px}
+.cat-row td{padding:12px 1.1rem 5px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:500;border-bottom:1px solid var(--border);background:var(--bg)}
+.cat-row.cat-flower  td{color:var(--accent); border-left:3px solid var(--accent)}
+.cat-row.cat-bird    td{color:var(--bird);   border-left:3px solid var(--bird)}
+.cat-row.cat-insect  td{color:var(--insect); border-left:3px solid var(--insect)}
+.cat-row.cat-other   td{color:var(--other);  border-left:3px solid var(--other)}
+.cat-row.cat-fungi   td{color:var(--fungi);  border-left:3px solid var(--fungi)}
+.cat-row.cat-mammal  td{color:var(--mammal); border-left:3px solid var(--mammal)}
+.cat-row.cat-reptile td{color:var(--reptile);border-left:3px solid var(--reptile)}
+.data-row{transition:background .1s}
+.data-row:hover{background:var(--row-hover)}
+.data-row td{padding:4px 4px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-row:last-child td{border-bottom:none}
+.name-cell{padding-left:.9rem !important;padding-right:10px !important}
+.species-name{font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.species-sci{font-family:var(--serif);font-style:italic;font-size:11px;color:var(--ink-faint);white-space:nowrap;padding-left:26px}
+.month-td{text-align:center;padding:4px 2px}
+.bar{display:block;height:11px;border-radius:2px;margin:0 2px;transition:transform .1s}
+.data-row:hover .bar{transform:scaleY(1.3)}
+.notes-cell{padding-left:10px !important;font-size:12px;color:var(--ink-mid);white-space:nowrap}
+.obs-count{font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-left:7px}
+.remove-btn{width:18px;height:18px;border-radius:50%;border:1px solid var(--border-mid);background:transparent;color:var(--ink-faint);font-size:15px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;padding:0}
+.remove-btn:hover{background:#fee2e2;border-color:#dc2626;color:#dc2626}
+.live-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#2d7a3a;flex-shrink:0;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.empty-state{padding:2.5rem;text-align:center;color:var(--ink-faint);font-size:14px;font-style:italic}
+
+#tooltip{position:fixed;background:var(--ink);color:var(--bg);font-family:var(--sans);font-size:12px;padding:8px 12px;border-radius:var(--radius);pointer-events:none;z-index:100;display:none;max-width:220px;line-height:1.5}
+#tooltip strong{display:block;margin-bottom:2px;font-size:13px}
+.tip-sci{display:block;opacity:.6;font-style:italic;font-size:10px;margin-bottom:4px}
+
+footer{max-width:1200px;margin:0 auto;padding:1.5rem 2rem 2.5rem;border-top:1px solid var(--border);display:flex;gap:2rem;flex-wrap:wrap;justify-content:space-between}
+.footer-note{font-size:12px;color:var(--ink-faint);max-width:500px;line-height:1.7}
+.footer-note a{color:var(--ink-mid)}
+.footer-src{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-align:right}
+.footer-src strong{display:block;color:var(--ink-mid);font-size:12px;margin-bottom:4px}
+
+@media(max-width:600px){header,main,footer{padding-left:1rem;padding-right:1rem}}
+</style>
+</head>
+<body>
+
+<header>
+  <p class="header-kicker">D'Aguilar Range · South-East Queensland · Australia</p>
+  <h1>Enoggera <em>Phenology</em></h1>
+  <p class="header-sub">When do flowers bloom, birds arrive, and insects emerge? Powered by live iNaturalist data. Add any species you like.</p>
+  <div class="header-meta">
+    <div class="meta-item">
+      <span class="meta-label">Species tracked</span>
+      <span class="meta-value" id="meta-count">30</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Total observations</span>
+      <span class="meta-value" id="meta-obs">—</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Location</span>
+      <span class="meta-value">27.45°S 152.87°E</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Last refreshed</span>
+      <span class="meta-value" id="meta-updated">—</span>
+    </div>
+    <span id="load-status"></span>
+  </div>
+</header>
+
+<main>
+
+  <div class="add-panel">
+    <div class="add-panel-header" id="panel-toggle">
+      <span class="add-panel-title">+ Track more species</span>
+      <span class="add-panel-sub">Search iNaturalist and add to your chart</span>
+      <span class="add-panel-toggle" id="panel-arrow">+</span>
+    </div>
+    <div class="add-panel-body" id="panel-body">
+      <div class="search-row">
+        <input type="text" class="search-input" id="species-search"
+          placeholder="e.g. koala, Eucalyptus, grey-headed flying fox, eastern blue-tongue…" />
+        <select class="cat-select" id="cat-select">
+          <option value="flower">Wildflowers &amp; Plants</option>
+          <option value="bird" selected>Birds</option>
+          <option value="insect">Insects</option>
+          <option value="mammal">Mammals</option>
+          <option value="reptile">Reptiles &amp; Amphibians</option>
+          <option value="fungi">Fungi</option>
+          <option value="other">Other</option>
+        </select>
+        <button class="search-btn" id="search-btn">Search iNaturalist</button>
+      </div>
+      <div id="search-results"></div>
+    </div>
+  </div>
+
+  <div class="controls-bar">
+    <span class="controls-label">Filter</span>
+    <button class="filter-btn active" data-cat="all">All</button>
+    <button class="filter-btn" data-cat="flower">Wildflowers</button>
+    <button class="filter-btn" data-cat="bird">Birds</button>
+    <button class="filter-btn" data-cat="insect">Insects</button>
+    <button class="filter-btn" data-cat="mammal">Mammals</button>
+    <button class="filter-btn" data-cat="reptile">Reptiles</button>
+    <button class="filter-btn" data-cat="fungi">Fungi</button>
+    <button class="filter-btn" data-cat="other">Other</button>
+  </div>
+
+  <div class="legend">
+    <div class="leg-item"><div class="leg-swatch"><span style="background:#3d5c2a"></span><span style="background:#3d5c2a;opacity:.3"></span></div>Flowers</div>
+    <div class="leg-item"><div class="leg-swatch"><span style="background:#1f4068"></span><span style="background:#1f4068;opacity:.3"></span></div>Birds</div>
+    <div class="leg-item"><div class="leg-swatch"><span style="background:#7a2e0e"></span><span style="background:#7a2e0e;opacity:.3"></span></div>Insects</div>
+    <div class="leg-item"><div class="leg-swatch"><span style="background:#5c3d1e"></span><span style="background:#5c3d1e;opacity:.3"></span></div>Mammals</div>
+    <div class="leg-item"><div class="leg-swatch"><span style="background:#2a5c4a"></span><span style="background:#2a5c4a;opacity:.3"></span></div>Reptiles</div>
+    <div class="leg-item"><div class="leg-swatch"><span style="background:#7a5c1e"></span><span style="background:#7a5c1e;opacity:.3"></span></div>Fungi</div>
+    <div class="leg-item"><div class="leg-swatch"><span style="background:#4a2e6e"></span><span style="background:#4a2e6e;opacity:.3"></span></div>Other</div>
+    <div class="leg-item" style="margin-left:auto">
+      <span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#2d7a3a;margin-right:5px;vertical-align:middle"></span>
+      Live iNaturalist · solid = peak, faded = present
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th class="name-th">Species</th>
+            <th class="month-th">Jan</th><th class="month-th">Feb</th><th class="month-th">Mar</th>
+            <th class="month-th">Apr</th><th class="month-th">May</th><th class="month-th">Jun</th>
+            <th class="month-th">Jul</th><th class="month-th">Aug</th><th class="month-th">Sep</th>
+            <th class="month-th">Oct</th><th class="month-th">Nov</th><th class="month-th">Dec</th>
+            <th class="notes-th">Notes</th>
+          </tr>
+        </thead>
+        <tbody id="pheno-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p class="footer-note">
+    Observation data fetched live from the <a href="https://api.inaturalist.org/v1" target="_blank">iNaturalist API</a> within 15 km of Enoggera (27.45°S 152.87°E). Peak months = ≥1.4× average monthly count; present = ≥0.4×. Species with no local data fall back to SE Qld baseline estimates. Click × to remove any species.
+    <br><br>
+    <a href="https://www.inaturalist.org/places/enoggera" target="_blank">Browse observations on iNaturalist →</a>
+  </p>
+  <div class="footer-src">
+    <strong>Data source</strong>
+    iNaturalist · live API<br>D'Aguilar Range, SE Qld<br>27.45°S 152.87°E
+  </div>
+</footer>
+
+<div id="tooltip"></div>
+
+<script>
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const CAT_META = {
+  flower:  {label:'Wildflowers & Plants',       color:'#3d5c2a'},
+  bird:    {label:'Birds',                       color:'#1f4068'},
+  insect:  {label:'Insects & Invertebrates',     color:'#7a2e0e'},
+  mammal:  {label:'Mammals',                     color:'#5c3d1e'},
+  reptile: {label:'Reptiles & Amphibians',       color:'#2a5c4a'},
+  fungi:   {label:'Fungi',                       color:'#7a5c1e'},
+  other:   {label:'Other Wildlife',              color:'#4a2e6e'},
+};
+const CAT_ORDER = ['flower','bird','insect','mammal','reptile','fungi','other'];
+
+const INAT = 'https://api.inaturalist.org/v1';
+const LAT = -27.45, LNG = 152.87, KM = 15;
+
+// ── baseline data ─────────────────────────────────────────────────────
+const BASELINE = [
+  {cat:'flower',name:'Lemon-scented Ironbark', sci:'Eucalyptus staigeriana',   notes:'Attracts lorikeets & honeyeaters',fp:[5,6,7,8],          fp2:[4,9],               fo:214},
+  {cat:'flower',name:'Scrub Turpentine',        sci:'Syncarpia glomulifera',    notes:'Key food tree for gliders',       fp:[8,9,10,11],         fp2:[7,12],              fo:187},
+  {cat:'flower',name:'Black Wattle',            sci:'Acacia melanoxylon',       notes:'First major winter bloom',        fp:[6,7,8],             fp2:[5,9],               fo:341},
+  {cat:'flower',name:'Narrow-leaved Wattle',    sci:'Acacia floribunda',        notes:'Common along creek banks',        fp:[7,8,9],             fp2:[6,10],              fo:156},
+  {cat:'flower',name:'Native Frangipani',       sci:'Hymenosporum flavum',      notes:'Strong evening scent',            fp:[9,10,11],           fp2:[8,12],              fo:98},
+  {cat:'flower',name:'Blueberry Ash',           sci:'Elaeocarpus reticulatus',  notes:'White bells; berries follow',     fp:[9,10,11,12],        fp2:[8],                 fo:203},
+  {cat:'flower',name:'Christmas Bells',         sci:'Blandfordia grandiflora',  notes:'Iconic summer bloomer',           fp:[11,12,0],           fp2:[10],                fo:89},
+  {cat:'flower',name:'Sundew',                  sci:'Drosera spatulata',        notes:'Wet heath; peak in summer',       fp:[9,10,11,12,0,1],    fp2:[2,8],               fo:312},
+  {cat:'flower',name:'Purple Coral Pea',        sci:'Hardenbergia violacea',    notes:'Vivid winter–spring display',     fp:[6,7,8,9],           fp2:[5,10],              fo:275},
+  {cat:'flower',name:'Silky Oak',               sci:'Grevillea robusta',        notes:'Major honeyeater resource',       fp:[9,10,11],           fp2:[8,12],              fo:198},
+  {cat:'bird',  name:'Rainbow Lorikeet',        sci:'Trichoglossus moluccanus', notes:'Year-round; peak with flowering', fp:[8,9,10,11,12,0,1],  fp2:[2,3,4,5,6,7],       fo:1843},
+  {cat:'bird',  name:"Lewin's Honeyeater",      sci:'Meliphaga lewinii',        notes:'Loud call; follows blooms',       fp:[8,9,10,11],         fp2:[0,1,2,3,4,5,6,7],  fo:634},
+  {cat:'bird',  name:'Scarlet Honeyeater',      sci:'Myzomela sanguinolenta',   notes:'Spring influx into canopy',       fp:[8,9,10,11,12],      fp2:[7],                 fo:287},
+  {cat:'bird',  name:'Satin Bowerbird',         sci:'Ptilonorhynchus violaceus',notes:'Display peaks in late summer',    fp:[0,1,2,3],           fp2:[4,5,6,7,8,9,10,11],fo:412},
+  {cat:'bird',  name:'Barred Cuckoo-shrike',    sci:'Coracina lineata',         notes:'Nomadic; follows fruiting figs',  fp:[10,11,0,1],         fp2:[2,9],               fo:143},
+  {cat:'bird',  name:'Cicadabird',              sci:'Edolisoma tenuirostre',    notes:'Migratory; arrives October',      fp:[10,11,0,1,2],       fp2:[9,3],               fo:198},
+  {cat:'bird',  name:'Shining Bronze-Cuckoo',   sci:'Chalcites lucidus',        notes:'Spring migrant from NZ',          fp:[9,10,11],           fp2:[8,12],              fo:156},
+  {cat:'bird',  name:'Rufous Fantail',          sci:'Rhipidura rufifrons',      notes:'Summer breeder in gullies',       fp:[9,10,11,0,1,2],     fp2:[3,8],               fo:234},
+  {cat:'bird',  name:'Powerful Owl',            sci:'Ninox strenua',            notes:'Breeding calls peak in winter',   fp:[5,6,7,8],           fp2:[0,1,2,3,4,9,10,11],fo:87},
+  {cat:'bird',  name:'Tawny Frogmouth',         sci:'Podargus strigoides',      notes:'Nests with eggs Jul–Aug',         fp:[6,7,8,9],           fp2:[0,1,2,3,4,5,10,11],fo:312},
+  {cat:'insect',name:'Ulysses Butterfly',       sci:'Papilio ulysses',          notes:'Attracted to blue flowers',       fp:[9,10,11,12,0],      fp2:[1,2,8],             fo:167},
+  {cat:'insect',name:'Orchard Swallowtail',     sci:'Papilio aegeus',           notes:'Multiple broods in warm months',  fp:[9,10,11,12,0,1,2],  fp2:[3,8],               fo:298},
+  {cat:'insect',name:'Common Grass-blue',       sci:'Zizina otis',              notes:'Year-round in sunny patches',     fp:[0,1,2,3,9,10,11,12],fp2:[4,5,8],             fo:445},
+  {cat:'insect',name:"Dawson's Burrowing Bee",  sci:'Amegilla dawsoni',         notes:'Native bee; loves purple flowers',fp:[8,9,10,11,12,0],    fp2:[7,1],               fo:134},
+  {cat:'insect',name:'Green Mantid',            sci:'Orthodera ministralis',    notes:'Egg cases visible in winter',     fp:[10,11,0,1,2,3],     fp2:[9,4],               fo:189},
+  {cat:'insect',name:'Mud-dauber Wasp',         sci:'Sceliphron laetum',        notes:'Builds mud nests in summer',      fp:[11,0,1,2,3],        fp2:[10,4],              fo:211},
+  {cat:'other', name:'Squirrel Glider',         sci:'Petaurus norfolcensis',    notes:'Active at wattle/banksia flowers',fp:[5,6,7,8,9],         fp2:[0,1,2,3,4,10,11],  fo:76},
+  {cat:'other', name:'Eastern Water Dragon',    sci:'Intellagama lesueurii',    notes:'Active warm months; hibernates',  fp:[9,10,11,0,1,2,3],   fp2:[4,8],               fo:521},
+  {cat:'other', name:'Green Tree Frog',         sci:'Litoria caerulea',         notes:'Breeds after summer rains',       fp:[11,0,1,2,3],        fp2:[4,5,10],            fo:389},
+  {cat:'other', name:'Land Mullet',             sci:'Bellatorias major',        notes:'SE Qld rainforest specialist',    fp:[10,11,0,1,2],       fp2:[9,3,4],             fo:112},
+];
+
+let data = BASELINE.map(s=>({
+  cat:s.cat, name:s.name, sci:s.sci, notes:s.notes,
+  peak:s.fp, present:s.fp2, obs:s.fo, live:false
+}));
+
+let activeFilter = 'all';
+
+// ── iNaturalist API ───────────────────────────────────────────────────
+function monthBreakdown(byMonth) {
+  const counts = Array.from({length:12},(_,i)=>byMonth[String(i+1)]||0);
+  const total  = counts.reduce((a,b)=>a+b,0);
+  if (!total) return {peak:[],present:[]};
+  const avg = total/12;
+  const peak=[], present=[];
+  counts.forEach((c,m)=>{
+    if (c>=avg*1.4) peak.push(m);
+    else if (c>=avg*0.4) present.push(m);
+  });
+  return {peak,present};
+}
+
+async function fetchObs(sciName) {
+  const p = new URLSearchParams({taxon_name:sciName,lat:LAT,lng:LNG,radius:KM,verifiable:'true'});
+  const [hR,tR] = await Promise.all([
+    fetch(`${INAT}/observations/histogram?${p}&date_field=observed&interval=month_of_year`),
+    fetch(`${INAT}/observations?${p}&per_page=0`),
+  ]);
+  if (!hR.ok||!tR.ok) throw new Error();
+  const [hJ,tJ] = await Promise.all([hR.json(),tR.json()]);
+  const {peak,present} = monthBreakdown(hJ.results?.month_of_year||{});
+  return {obs:tJ.total_results||0, peak, present};
+}
+
+async function localCount(taxonId) {
+  const p = new URLSearchParams({taxon_id:taxonId,lat:LAT,lng:LNG,radius:KM,verifiable:'true'});
+  try {
+    const r = await fetch(`${INAT}/observations?${p}&per_page=0`);
+    const j = await r.json();
+    return j.total_results||0;
+  } catch(_){ return 0; }
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────
+function setStatus(msg, fade=false) {
+  const el = document.getElementById('load-status');
+  el.style.opacity='1';
+  el.textContent = msg;
+  if (fade) setTimeout(()=>el.style.opacity='0', 2500);
+}
+
+function updateMeta() {
+  document.getElementById('meta-count').textContent = data.length;
+  const tot = data.reduce((a,d)=>a+d.obs,0);
+  document.getElementById('meta-obs').textContent = tot ? '~'+tot.toLocaleString() : '—';
+  document.getElementById('meta-updated').textContent =
+    new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+}
+
+// ── render ────────────────────────────────────────────────────────────
+function render() {
+  const tbody = document.getElementById('pheno-body');
+  tbody.innerHTML='';
+  const cats = CAT_ORDER.filter(c=>activeFilter==='all'||activeFilter===c);
+  let any=false;
+
+  cats.forEach(cat=>{
+    const items = data.filter(d=>d.cat===cat);
+    if (!items.length) return;
+    any=true;
+    const cm = CAT_META[cat]||CAT_META.other;
+    const hr = document.createElement('tr');
+    hr.className=`cat-row cat-${cat}`;
+    hr.innerHTML=`<td colspan="14">${cm.label}</td>`;
+    tbody.appendChild(hr);
+
+    items.forEach(item=>{
+      const color = (CAT_META[item.cat]||CAT_META.other).color;
+      const gIdx  = data.indexOf(item);
+      const tr    = document.createElement('tr');
+      tr.className='data-row';
+
+      let html=`<td class="name-cell">
+        <div class="species-name">
+          <button class="remove-btn" data-idx="${gIdx}" title="Remove">×</button>
+          ${item.name}
+          ${item.live?'<span class="live-dot" title="Live iNaturalist data"></span>':''}
+        </div>
+        <div class="species-sci">${item.sci}</div>
+      </td>`;
+
+      for(let m=0;m<12;m++){
+        const isPeak    = item.peak.includes(m);
+        const isPresent = item.present.includes(m);
+        const op = isPeak?1:isPresent?0.3:0;
+        if(op>0){
+          html+=`<td class="month-td"><span class="bar"
+            style="background:${color};opacity:${op}"
+            data-name="${item.name.replace(/'/g,"&#39;")}"
+            data-sci="${item.sci}"
+            data-month="${MONTHS[m]}"
+            data-status="${isPeak?'Peak activity':'Present (occasional)'}"
+            data-notes="${item.notes}"
+            data-obs="${item.obs>0?item.obs.toLocaleString():'—'}"
+            data-live="${item.live}"></span></td>`;
+        } else {
+          html+=`<td class="month-td"></td>`;
+        }
+      }
+
+      const obsStr = item.live
+        ? `~${item.obs.toLocaleString()} obs`
+        : (item.obs ? `~${item.obs.toLocaleString()} obs (est.)` : 'fetching…');
+      html+=`<td class="notes-cell">${item.notes}<span class="obs-count">${obsStr}</span></td>`;
+      tr.innerHTML=html;
+      tbody.appendChild(tr);
+    });
+  });
+
+  if(!any){
+    const er=document.createElement('tr');
+    er.innerHTML=`<td colspan="14" class="empty-state">No species in this category. Use the panel above to search and add.</td>`;
+    tbody.appendChild(er);
+  }
+
+  // remove buttons
+  document.querySelectorAll('.remove-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      data.splice(+btn.dataset.idx,1);
+      updateMeta();
+      render();
+    });
+  });
+
+  // tooltips
+  const tt=document.getElementById('tooltip');
+  document.querySelectorAll('.bar[data-name]').forEach(el=>{
+    el.addEventListener('mouseenter',e=>{
+      const d=e.target.dataset;
+      const src=d.live==='true'
+        ?'<span style="opacity:.4;font-size:10px">● live iNaturalist</span>'
+        :'<span style="opacity:.32;font-size:10px">○ baseline estimate</span>';
+      tt.innerHTML=`<strong>${d.name}</strong><span class="tip-sci">${d.sci}</span>${d.month}: ${d.status}<br><span style="opacity:.65">${d.notes}</span><br><span style="opacity:.5;font-size:11px">${d.obs} obs &nbsp;${src}</span>`;
+      tt.style.display='block';
+    });
+    el.addEventListener('mousemove',e=>{tt.style.left=(e.clientX+16)+'px';tt.style.top=(e.clientY-46)+'px'});
+    el.addEventListener('mouseleave',()=>tt.style.display='none');
+  });
+}
+
+// ── bulk live load ────────────────────────────────────────────────────
+async function loadLive(items) {
+  let done=0;
+  setStatus(`Fetching from iNaturalist… 0/${items.length}`);
+  await Promise.allSettled(items.map(async item=>{
+    try {
+      const live=await fetchObs(item.sci);
+      if(live.obs>0&&live.peak.length>0) Object.assign(item,live,{live:true});
+    } catch(_){}
+    done++;
+    setStatus(`Fetching from iNaturalist… ${done}/${items.length}`);
+    if(done%5===0||done===items.length) render();
+  }));
+  updateMeta();
+  setStatus(`Updated — ${items.filter(d=>d.live).length}/${items.length} species live`, true);
+}
+
+// ── search UI ─────────────────────────────────────────────────────────
+async function doSearch(q, cat) {
+  const res = await fetch(`${INAT}/taxa?q=${encodeURIComponent(q)}&rank=species,subspecies&preferred_place_id=7161&locale=en&per_page=12`);
+  if(!res.ok) throw new Error();
+  const j = await res.json();
+  return j.results||[];
+}
+
+function renderResults(taxa, cat) {
+  const container=document.getElementById('search-results');
+  if(!taxa.length){
+    container.innerHTML='<p class="no-results">No species found — try a different name or spelling.</p>';
+    return;
+  }
+  const addedSci = new Set(data.map(d=>d.sci.toLowerCase()));
+  const grid=document.createElement('div');
+  grid.className='results-grid';
+  container.innerHTML='';
+  container.appendChild(grid);
+
+  taxa.forEach(taxon=>{
+    const sci    = taxon.name||'';
+    const common = taxon.preferred_common_name||taxon.english_common_name||sci;
+    const added  = addedSci.has(sci.toLowerCase());
+    const iconic = taxon.iconic_taxon_name||taxon.rank||'';
+
+    const card=document.createElement('div');
+    card.className='result-card'+(added?' already-added':'');
+    card.innerHTML=`
+      <div class="result-name">${common}</div>
+      <div class="result-sci">${sci}</div>
+      <div class="result-meta">${iconic}</div>
+      <div class="result-meta" id="lc-${taxon.id}">Checking local records…</div>
+      ${!added?`<button class="add-btn" data-sci="${sci.replace(/"/g,'&quot;')}" data-name="${common.replace(/"/g,'&quot;')}" data-id="${taxon.id}">Add to chart</button>`:''}
+    `;
+    grid.appendChild(card);
+
+    localCount(taxon.id).then(n=>{
+      const el=document.getElementById(`lc-${taxon.id}`);
+      if(el) el.textContent = n ? `${n.toLocaleString()} obs within 15 km of Enoggera` : 'No local observations found';
+    });
+
+    if(!added){
+      card.querySelector('.add-btn').addEventListener('click', async()=>{
+        const newItem={cat,name:common,sci,notes:iconic||'Added from iNaturalist search',
+          peak:[],present:[],obs:0,live:false};
+        data.push(newItem);
+        card.classList.add('already-added');
+        card.querySelector('.add-btn')?.remove();
+        updateMeta();
+        // switch filter to show new item
+        if(activeFilter!=='all'&&activeFilter!==cat){
+          document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+          document.querySelector('.filter-btn[data-cat="all"]').classList.add('active');
+          activeFilter='all';
+        }
+        render();
+        // fetch its live data
+        try {
+          const live=await fetchObs(sci);
+          if(live.obs>0&&live.peak.length>0) Object.assign(newItem,live,{live:true});
+          else newItem.notes+=' — limited local data';
+        } catch(_){ newItem.notes+=' — could not fetch data'; }
+        updateMeta();
+        render();
+      });
+    }
+  });
+}
+
+// ── events ────────────────────────────────────────────────────────────
+document.getElementById('panel-toggle').addEventListener('click',()=>{
+  document.getElementById('panel-body').classList.toggle('open');
+  document.getElementById('panel-arrow').classList.toggle('open');
+});
+
+document.getElementById('search-btn').addEventListener('click', async()=>{
+  const q   = document.getElementById('species-search').value.trim();
+  const cat = document.getElementById('cat-select').value;
+  if(!q) return;
+  const btn=document.getElementById('search-btn');
+  btn.disabled=true; btn.textContent='Searching…';
+  document.getElementById('search-results').innerHTML='';
+  try { renderResults(await doSearch(q,cat), cat); }
+  catch(_){ document.getElementById('search-results').innerHTML='<p class="no-results">Search failed — check your connection and try again.</p>'; }
+  btn.disabled=false; btn.textContent='Search iNaturalist';
+});
+
+document.getElementById('species-search').addEventListener('keydown',e=>{
+  if(e.key==='Enter') document.getElementById('search-btn').click();
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter=btn.dataset.cat;
+    render();
+  });
+});
+
+// ── boot ──────────────────────────────────────────────────────────────
+render();
+loadLive(data);
+</script>
+</body>
+</html>

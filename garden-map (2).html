@@ -46,17 +46,6 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
 .size-pill:hover { border-color: var(--green-mid); color: var(--green-mid); }
 .size-pill.active { background: var(--green-mid); border-color: var(--green-mid); color: #fff; }
 
-/* sun filter pills */
-.filter-group { margin-bottom: 5px; }
-.filter-label { font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 3px; }
-.sun-filters { display: flex; flex-wrap: wrap; gap: 3px; }
-.sun-pill { padding: 2px 6px; border-radius: 20px; font-size: 9px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); transition: all .12s; white-space: nowrap; }
-.sun-pill:hover { border-color: #c8820a; color: #c8820a; }
-.sun-pill.active { background: #c8820a; border-color: #c8820a; color: #fff; }
-.sun-pill[data-sun="Full Sun"].active    { background: #d4900a; border-color: #d4900a; }
-.sun-pill[data-sun="Partial Shade"].active { background: #5a8a2a; border-color: #5a8a2a; }
-.sun-pill[data-sun="Full Shade"].active  { background: #2a5a8a; border-color: #2a5a8a; }
-
 .plant-palette { display: flex; flex-direction: column; gap: 2px; max-height: 220px; overflow-y: auto; }
 .palette-item { display: flex; align-items: center; gap: 5px; padding: 4px 6px; background: var(--bg); border: 1px dashed var(--border); border-radius: 6px; cursor: grab; font-size: 11px; transition: background .12s; user-select: none; min-width: 0; }
 .palette-item:hover { background: #ece6d5; border-color: #b5aa8c; }
@@ -99,9 +88,7 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
 
 .canvas-wrap { flex: 1; min-width: 280px; }
 .canvas-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 4px; }
-.bed-title { font-family: 'Lora', serif; font-size: 15px; font-weight: 600; color: var(--green-dark); cursor: pointer; border-radius: 4px; padding: 1px 4px; margin: -1px -4px; transition: background .13s; }
-.bed-title:hover { background: rgba(45,80,22,.08); outline: 1.5px dashed var(--green-mid); }
-.bed-title-input { font-family: 'Lora', serif; font-size: 15px; font-weight: 600; color: var(--green-dark); border: 1.5px solid var(--green-mid); border-radius: 6px; padding: 1px 6px; background: #fff; outline: none; width: auto; min-width: 80px; }
+.bed-title { font-family: 'Lora', serif; font-size: 15px; font-weight: 600; color: var(--green-dark); }
 
 #garden-canvas { background: #e8f0d8; border: 2px solid #8faa5e; border-radius: 10px; display: block; touch-action: none; cursor: default; width: 100%; }
 
@@ -240,14 +227,7 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
       <h3 onclick="toggleSection('section-plants')">Add Plants <span id="palette-count" style="font-weight:300;font-family:'DM Sans',sans-serif;text-transform:none;letter-spacing:0"></span></h3>
       <div class="section-body">
         <input class="palette-search" id="palette-search" type="text" placeholder="Search name…" oninput="renderPalette()">
-        <div class="filter-group">
-          <div class="filter-label">Size</div>
-          <div class="size-filters" id="size-filters"></div>
-        </div>
-        <div class="filter-group">
-          <div class="filter-label">Sun</div>
-          <div class="sun-filters" id="sun-filters"></div>
-        </div>
+        <div class="size-filters" id="size-filters"></div>
         <div class="plant-palette" id="plant-palette"></div>
       </div>
     </div>
@@ -295,7 +275,7 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
 
   <div class="canvas-wrap">
     <div class="canvas-header">
-      <div class="bed-title" id="bed-title" onclick="startTitleRename()" title="Click to rename">Select a bed</div>
+      <div class="bed-title" id="bed-title">Select a bed</div>
       <div class="bed-dims" id="bed-dims" onclick="toggleSizeEditor()" title="Click to edit bed size"></div>
     </div>
     <div class="size-editor" id="size-editor">
@@ -328,7 +308,6 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
       </span>
       <button class="tool-btn danger" onclick="clearAll()">🗑 Clear all</button>
       <button class="tool-btn primary" onclick="saveLayout()">💾 Save layout</button>
-      <button class="tool-btn" onclick="printLayout()" title="Print plant list and garden map">🖨 Print</button>
     </div>
     <div class="info-bar">
       <div class="info-item">Plants placed: <span id="plant-count">0</span></div>
@@ -493,7 +472,6 @@ function sizeCategory(spaceM) {
 
 const SIZE_CATEGORIES = ['Groundcover','Small shrub','Large shrub','Small tree','Large tree'];
 let activeSizeFilter = '';
-let activeSunFilter = '';
 
 // ── PLANT COLOUR ASSIGNMENT ───────────────────────────────────────────────────
 function hashColor(str) {
@@ -1157,29 +1135,6 @@ function buildSizeFilters() {
   });
 }
 
-const SUN_OPTIONS = [
-  { value: 'Full Sun',      label: '☀ Full Sun' },
-  { value: 'Partial Shade', label: '⛅ Partial' },
-  { value: 'Full Shade',    label: '🌥 Shade' },
-];
-
-function buildSunFilters() {
-  const wrap = document.getElementById('sun-filters');
-  wrap.innerHTML = '';
-  const all = document.createElement('button');
-  all.className = 'sun-pill' + (!activeSunFilter ? ' active' : '');
-  all.textContent = 'All'; all.onclick = () => { activeSunFilter = ''; renderPalette(); buildSunFilters(); };
-  wrap.appendChild(all);
-  SUN_OPTIONS.forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'sun-pill' + (activeSunFilter === opt.value ? ' active' : '');
-    btn.dataset.sun = opt.value;
-    btn.textContent = opt.label;
-    btn.onclick = () => { activeSunFilter = opt.value; renderPalette(); buildSunFilters(); };
-    wrap.appendChild(btn);
-  });
-}
-
 function renderPalette() {
   const q = document.getElementById('palette-search').value.toLowerCase();
   const pal = document.getElementById('plant-palette');
@@ -1188,8 +1143,7 @@ function renderPalette() {
   const filtered = PLANTS.filter(p => {
     const matchQ = !q || p[0].toLowerCase().includes(q) || (p[1] && p[1].toLowerCase().includes(q));
     const matchS = !activeSizeFilter || sizeCategory(p[3]) === activeSizeFilter;
-    const matchSun = !activeSunFilter || p[2] === activeSunFilter;
-    return matchQ && matchS && matchSun;
+    return matchQ && matchS;
   });
 
   document.getElementById('palette-count').textContent = `(${filtered.length})`;
@@ -1285,62 +1239,6 @@ function hidePlantTooltip() {
 }
 
 // ── BED / CANVAS ──────────────────────────────────────────────────────────────
-function startTitleRename() {
-  if (!activeBed) return;
-  const titleEl = document.getElementById('bed-title');
-  const oldName = activeBed;
-
-  const input = document.createElement('input');
-  input.className = 'bed-title-input';
-  input.value = oldName;
-  // Size input to content
-  input.style.width = Math.max(80, oldName.length * 11) + 'px';
-  input.oninput = () => { input.style.width = Math.max(80, input.value.length * 11) + 'px'; };
-
-  titleEl.replaceWith(input);
-  input.focus(); input.select();
-
-  function commit() {
-    const newName = input.value.trim();
-    const restoredTitle = document.createElement('div');
-    restoredTitle.className = 'bed-title';
-    restoredTitle.id = 'bed-title';
-    restoredTitle.title = 'Click to rename';
-    restoredTitle.onclick = startTitleRename;
-
-    if (!newName || newName === oldName || !gardenData.beds[oldName]) {
-      restoredTitle.textContent = activeBed;
-      input.replaceWith(restoredTitle);
-      return;
-    }
-    if (gardenData.beds[newName]) {
-      showToast('That name is already used');
-      input.focus(); return;
-    }
-
-    // Rename the bed key preserving order
-    const beds = {};
-    Object.entries(gardenData.beds).forEach(([k, v]) => { beds[k === oldName ? newName : k] = v; });
-    gardenData.beds = beds;
-    gardenData.objects.forEach(o => { if (o.bed === oldName) o.bed = newName; });
-    activeBed = newName;
-
-    restoredTitle.textContent = newName;
-    input.replaceWith(restoredTitle);
-
-    saveToStorage();
-    buildBedSelector();
-    document.getElementById('bed-dims').textContent = `${gardenData.beds[activeBed].width}m × ${gardenData.beds[activeBed].length}m ✎`;
-    showToast(`Renamed to "${newName}"`);
-  }
-
-  input.addEventListener('blur', commit);
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
-    if (e.key === 'Escape') { input.value = oldName; input.blur(); }
-  });
-}
-
 function selectBed(name) {
   activeBed = name;
   selectedPlant = null;
@@ -1981,7 +1879,6 @@ function reloadFloralistData() {
   PLANTS = buildPlants(fresh);
   updateDataBadge(true);
   buildSizeFilters();
-  buildSunFilters();
   renderPalette();
   showToast(`✓ Loaded ${PLANTS.length} species from Floralist`);
 }
@@ -2004,204 +1901,6 @@ function updateDataBadge(fromFloralist) {
   }
 }
 
-// ── PRINT ─────────────────────────────────────────────────────────────────────
-function printLayout() {
-  const SCALE = 96; // px per metre for print SVG
-  const PAD = 36;
-
-  // ── Gather all plants across all beds ──────────────────────────────────────
-  const bedEntries = Object.entries(gardenData.beds);
-  const allPlants = [];
-  bedEntries.forEach(([bedName, bed]) => {
-    bed.plants.forEach(p => {
-      const def = plantDef(p.name);
-      allPlants.push({ bed: bedName, name: p.name, common: def[1] || '', shade: def[2] || '', spacing: p.spacing });
-    });
-  });
-
-  // ── Build plant list table HTML ────────────────────────────────────────────
-  function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  // Group by bed
-  const byBed = {};
-  allPlants.forEach(p => { if (!byBed[p.bed]) byBed[p.bed] = []; byBed[p.bed].push(p); });
-
-  let tableHtml = '';
-  Object.entries(byBed).forEach(([bedName, plants]) => {
-    // Count duplicates
-    const counts = {};
-    plants.forEach(p => { counts[p.name] = (counts[p.name] || 0) + 1; });
-    const unique = [...new Map(plants.map(p => [p.name, p])).values()];
-
-    tableHtml += `<h3 class="bed-heading">${escH(bedName)}</h3>
-<table>
-  <thead><tr><th>#</th><th>Botanical name</th><th>Common name</th><th>Sun</th><th>Spacing</th><th>Qty</th></tr></thead>
-  <tbody>` +
-      unique.map((p, i) => `<tr>
-    <td>${i + 1}</td>
-    <td class="italic">${escH(p.name)}</td>
-    <td>${escH(p.common ? p.common.split(',')[0] : '—')}</td>
-    <td>${escH(p.shade || '—')}</td>
-    <td>${p.spacing}m</td>
-    <td>${counts[p.name]}</td>
-  </tr>`).join('') +
-    `</tbody></table>`;
-  });
-
-  if (!tableHtml) tableHtml = '<p class="empty-msg">No plants have been added to any bed yet.</p>';
-
-  // ── Build SVG map for each bed ─────────────────────────────────────────────
-  const PALETTE = ['#4a8a2a','#2a6a4a','#8a6a2a','#6a2a8a','#2a4a8a','#8a2a4a',
-                   '#3a7a5a','#7a5a2a','#5a2a7a','#2a7a7a','#7a2a2a','#4a6a2a'];
-  function hColor(str) {
-    let h = 0;
-    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-    const hues = [100,115,130,85,145,70,160,90];
-    const hue = hues[h % hues.length];
-    const sat = 40 + (h >> 4) % 30;
-    const lit = 30 + (h >> 8) % 25;
-    return `hsl(${hue},${sat}%,${lit}%)`;
-  }
-
-  let mapsHtml = '';
-  bedEntries.forEach(([bedName, bed]) => {
-    if (!bed.plants.length && !gardenData.objects.filter(o=>o.bed===bedName).length) return;
-
-    const W = Math.round(bed.width  * SCALE);
-    const H = Math.round(bed.length * SCALE);
-    const svgW = W + PAD * 2;
-    const svgH = H + PAD * 2;
-
-    // Grid lines
-    let gridSvg = '';
-    for (let x = 0; x <= bed.width; x++) {
-      const px = PAD + Math.round(x * SCALE);
-      gridSvg += `<line x1="${px}" y1="${PAD}" x2="${px}" y2="${PAD+H}" stroke="#c8d8a8" stroke-width="${x===0||x===bed.width?1.5:.5}"/>`;
-      gridSvg += `<text x="${px}" y="${PAD-6}" text-anchor="middle" font-size="9" fill="#7a9a50">${x}m</text>`;
-    }
-    for (let y = 0; y <= bed.length; y++) {
-      const py = PAD + Math.round(y * SCALE);
-      gridSvg += `<line x1="${PAD}" y1="${py}" x2="${PAD+W}" y2="${py}" stroke="#c8d8a8" stroke-width="${y===0||y===bed.length?1.5:.5}"/>`;
-      gridSvg += `<text x="${PAD-6}" y="${py+4}" text-anchor="end" font-size="9" fill="#7a9a50">${y}m</text>`;
-    }
-
-    // Plant circles
-    let plantSvg = '';
-    const legendItems = {};
-
-    bed.plants.forEach(p => {
-      const def = plantDef(p.name);
-      const label = def[1] ? def[1].split(',')[0] : p.name.split(' ').slice(0,2).join(' ');
-      const col = hColor(p.name);
-      const cx = PAD + Math.round(p.x * SCALE);
-      const cy = PAD + Math.round(p.y * SCALE);
-      const r  = Math.round((p.spacing / 2) * SCALE);
-      const shortLabel = label.length > 12 ? label.slice(0,11)+'…' : label;
-      const fs = Math.max(7, Math.min(11, r * 0.38));
-
-      legendItems[p.name] = { label, col };
-
-      plantSvg += `<g>
-  <title>${escH(p.name)}${def[1] ? ' — ' + escH(def[1].split(',')[0]) : ''} · ${p.spacing}m spacing</title>
-  <circle cx="${cx}" cy="${cy}" r="${r}" fill="${col}" fill-opacity="0.82" stroke="white" stroke-width="1.5"/>
-  ${r >= 14
-    ? `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" font-size="${fs}" fill="white" font-weight="600">${escH(shortLabel)}</text>`
-    : `<text x="${cx}" y="${cy + r + 10}" text-anchor="middle" font-size="8" fill="#444">${escH(shortLabel)}</text>`
-  }
-</g>`;
-    });
-
-    // Legend
-    const legendEntries = Object.entries(legendItems);
-    const legendHtml = legendEntries.length
-      ? `<div class="map-legend">${legendEntries.map(([name, {label, col}]) =>
-          `<span class="leg-item"><svg width="10" height="10"><circle cx="5" cy="5" r="5" fill="${col}"/></svg>${escH(label)}</span>`
-        ).join('')}</div>`
-      : '';
-
-    mapsHtml += `
-<div class="map-block">
-  <h3 class="bed-heading">${escH(bedName)} <span class="bed-dim">${bed.width}m × ${bed.length}m</span></h3>
-  <svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg" style="font-family:Georgia,serif">
-    <rect x="${PAD}" y="${PAD}" width="${W}" height="${H}" fill="#edf5dc" stroke="#8faa5e" stroke-width="1.5" rx="3"/>
-    ${gridSvg}
-    ${plantSvg}
-  </svg>
-  ${legendHtml}
-</div>`;
-  });
-
-  if (!mapsHtml) mapsHtml = '<p class="empty-msg">No beds with plants to map.</p>';
-
-  // ── Assemble print window ──────────────────────────────────────────────────
-  const today = new Date().toLocaleDateString('en-AU', { day:'numeric', month:'long', year:'numeric' });
-
-  const printDoc = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Garden Plan — ${today}</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Georgia', serif; color: #1e2a10; background: #fff; padding: 28px 36px; }
-  h1 { font-size: 22px; color: #2d5016; margin-bottom: 3px; }
-  .subtitle { font-size: 11px; color: #7a7560; margin-bottom: 24px; }
-
-  /* ── Plant list ── */
-  .section-title { font-size: 15px; font-weight: bold; color: #2d5016; border-bottom: 1.5px solid #b0c880; padding-bottom: 4px; margin: 22px 0 12px; letter-spacing:.01em; }
-  .bed-heading { font-size: 13px; font-weight: bold; color: #3b6d11; margin: 14px 0 6px; }
-  .bed-dim { font-size: 11px; font-weight: normal; color: #7a9a60; margin-left: 6px; }
-  table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 10px; }
-  thead tr { background: #2d5016; color: #f0ead8; }
-  th { padding: 5px 9px; text-align: left; font-size: 10px; font-weight: 600; letter-spacing:.05em; text-transform:uppercase; }
-  td { padding: 5px 9px; border-bottom: 1px solid #e0d8c0; vertical-align: top; }
-  tr:last-child td { border-bottom: none; }
-  tr:nth-child(even) td { background: #f6f3ec; }
-  td.italic { font-style: italic; color: #2d5016; }
-
-  /* ── Maps ── */
-  .map-block { margin-bottom: 28px; page-break-inside: avoid; }
-  svg text { font-family: 'DM Sans', Arial, sans-serif; }
-  .map-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px; font-size: 10px; color: #444; }
-  .leg-item { display: flex; align-items: center; gap: 5px; }
-
-  .empty-msg { font-size: 12px; color: #999; font-style: italic; margin: 10px 0; }
-
-  /* ── Print rules ── */
-  @media print {
-    body { padding: 12px 18px; }
-    .no-print { display: none !important; }
-    @page { margin: 15mm; size: A4 portrait; }
-    h1 { font-size: 18px; }
-    .section-title { break-before: auto; }
-  }
-</style>
-</head>
-<body>
-
-<div class="no-print" style="background:#2d5016;color:#f0ead8;padding:10px 18px;border-radius:8px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
-  <span style="font-family:sans-serif;font-size:13px">🖨 Ready to print — click the button or use Ctrl/Cmd+P</span>
-  <button onclick="window.print()" style="background:#fff;color:#2d5016;border:none;border-radius:6px;padding:6px 16px;font-size:13px;font-weight:600;cursor:pointer">Print</button>
-</div>
-
-<h1>🌿 Bushcare Site / Native Garden Plan</h1>
-<p class="subtitle">Printed ${today}</p>
-
-<div class="section-title">Plant List</div>
-${tableHtml}
-
-<div class="section-title">Garden Maps</div>
-${mapsHtml}
-
-</body>
-</html>`;
-
-  const win = window.open('', '_blank', 'width=900,height=700');
-  win.document.write(printDoc);
-  win.document.close();
-  win.focus();
-}
-
 // ── INIT ──────────────────────────────────────────────────────────────────────
 // Draw object palette icons
 Object.keys(OBJECT_DEFS).forEach(type => {
@@ -2213,7 +1912,6 @@ Object.keys(OBJECT_DEFS).forEach(type => {
 
 buildBedSelector();
 buildSizeFilters();
-buildSunFilters();
 renderPalette();
 updateDataBadge(dataSource === 'floralist');
 selectBed(Object.keys(gardenData.beds)[0]);

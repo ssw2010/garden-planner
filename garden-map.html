@@ -46,17 +46,6 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
 .size-pill:hover { border-color: var(--green-mid); color: var(--green-mid); }
 .size-pill.active { background: var(--green-mid); border-color: var(--green-mid); color: #fff; }
 
-/* sun filter pills */
-.filter-group { margin-bottom: 5px; }
-.filter-label { font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 3px; }
-.sun-filters { display: flex; flex-wrap: wrap; gap: 3px; }
-.sun-pill { padding: 2px 6px; border-radius: 20px; font-size: 9px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); transition: all .12s; white-space: nowrap; }
-.sun-pill:hover { border-color: #c8820a; color: #c8820a; }
-.sun-pill.active { background: #c8820a; border-color: #c8820a; color: #fff; }
-.sun-pill[data-sun="Full Sun"].active    { background: #d4900a; border-color: #d4900a; }
-.sun-pill[data-sun="Partial Shade"].active { background: #5a8a2a; border-color: #5a8a2a; }
-.sun-pill[data-sun="Full Shade"].active  { background: #2a5a8a; border-color: #2a5a8a; }
-
 .plant-palette { display: flex; flex-direction: column; gap: 2px; max-height: 220px; overflow-y: auto; }
 .palette-item { display: flex; align-items: center; gap: 5px; padding: 4px 6px; background: var(--bg); border: 1px dashed var(--border); border-radius: 6px; cursor: grab; font-size: 11px; transition: background .12s; user-select: none; min-width: 0; }
 .palette-item:hover { background: #ece6d5; border-color: #b5aa8c; }
@@ -99,9 +88,7 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
 
 .canvas-wrap { flex: 1; min-width: 280px; }
 .canvas-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 4px; }
-.bed-title { font-family: 'Lora', serif; font-size: 15px; font-weight: 600; color: var(--green-dark); cursor: pointer; border-radius: 4px; padding: 1px 4px; margin: -1px -4px; transition: background .13s; }
-.bed-title:hover { background: rgba(45,80,22,.08); outline: 1.5px dashed var(--green-mid); }
-.bed-title-input { font-family: 'Lora', serif; font-size: 15px; font-weight: 600; color: var(--green-dark); border: 1.5px solid var(--green-mid); border-radius: 6px; padding: 1px 6px; background: #fff; outline: none; width: auto; min-width: 80px; }
+.bed-title { font-family: 'Lora', serif; font-size: 15px; font-weight: 600; color: var(--green-dark); }
 
 #garden-canvas { background: #e8f0d8; border: 2px solid #8faa5e; border-radius: 10px; display: block; touch-action: none; cursor: default; width: 100%; }
 
@@ -228,7 +215,7 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
 
 <h1>Bushcare Site / Native Garden Planner</h1>
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-  <p class="subtitle" style="margin-bottom:0">Drag BFP natives into your beds · Click to select · Double-click to remove</p>
+  <p class="subtitle" style="margin-bottom:0">Drag Planting Planner 2026 species into your beds · Click to select · Double-click to remove</p>
   <span id="data-source-badge" style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;flex-shrink:0"></span>
   <button onclick="reloadFloralistData()" style="font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0">↻ Reload Floralist</button>
 </div>
@@ -240,14 +227,7 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
       <h3 onclick="toggleSection('section-plants')">Add Plants <span id="palette-count" style="font-weight:300;font-family:'DM Sans',sans-serif;text-transform:none;letter-spacing:0"></span></h3>
       <div class="section-body">
         <input class="palette-search" id="palette-search" type="text" placeholder="Search name…" oninput="renderPalette()">
-        <div class="filter-group">
-          <div class="filter-label">Size</div>
-          <div class="size-filters" id="size-filters"></div>
-        </div>
-        <div class="filter-group">
-          <div class="filter-label">Sun</div>
-          <div class="sun-filters" id="sun-filters"></div>
-        </div>
+        <div class="size-filters" id="size-filters"></div>
         <div class="plant-palette" id="plant-palette"></div>
       </div>
     </div>
@@ -295,7 +275,7 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
 
   <div class="canvas-wrap">
     <div class="canvas-header">
-      <div class="bed-title" id="bed-title" onclick="startTitleRename()" title="Click to rename">Select a bed</div>
+      <div class="bed-title" id="bed-title">Select a bed</div>
       <div class="bed-dims" id="bed-dims" onclick="toggleSizeEditor()" title="Click to edit bed size"></div>
     </div>
     <div class="size-editor" id="size-editor">
@@ -328,7 +308,6 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
       </span>
       <button class="tool-btn danger" onclick="clearAll()">🗑 Clear all</button>
       <button class="tool-btn primary" onclick="saveLayout()">💾 Save layout</button>
-      <button class="tool-btn" onclick="printLayout()" title="Print plant list and garden map">🖨 Print</button>
     </div>
     <div class="info-bar">
       <div class="info-item">Plants placed: <span id="plant-count">0</span></div>
@@ -349,136 +328,131 @@ h1 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(-
 // palette is fully populated even without opening floralist first.
 // Format: [botanical, commonName, shade, spacingM, thumbUrl, pageUrl]
 
-const FLORALIST_FALLBACK = [
-  ["Abildgaardia vaginata","","",null,"",""],
-  ["Abrophyllum ornans","Native hydrangea","",null,"",""],
-  ["Abrus precatorius","Crab\u2019s eye, Precatory bean, Rosary pea","",null,"",""],
-  ["Abutilon auritum","","",null,"",""],
-  ["Abutilon oxycarpum","Small-flowered abutilon, Flannel weed","",null,"",""],
-  ["Acacia disparrima","Hickory wattle","",15,"",""],
-  ["Acacia complanata","Flat-stemmed wattle","",null,"",""],
-  ["Acacia concurrens","Black wattle","",null,"",""],
-  ["Acacia deanei","Green wattle","",null,"",""],
-  ["Acacia decora","Pretty wattle","",null,"",""],
-  ["Acacia falcata","","",null,"",""],
-  ["Acacia fasciculifera","Scaly bark, Scrub ironbark","",null,"",""],
-  ["Acacia fimbriata","Brisbane golden wattle, Fringed wattle","Full Sun",5,"",""],
-  ["Acacia implexa","Lightwood","",null,"",""],
-  ["Acacia irrorata","Green wattle","",null,"",""],
-  ["Acacia leiocalyx ssp leiocalyx","Black wattle","",8,"",""],
-  ["Acacia leucoclada ssp argentea","","",null,"",""],
-  ["Acacia longissima","Narrow-leaf acacia","",null,"",""],
-  ["Acacia maidenii","Maiden\u2019s wattle","",null,"",""],
-  ["Acacia melanoxylon","Blackwood","",null,"",""],
-  ["Acacia podalyriifolia","Qld silver wattle","",null,"",""],
-  ["Acacia ulicifolia var ulicifolia","Prickly Moses","",null,"",""],
-  ["Acaena anserinifolia","Biddy biddy","",null,"",""],
-  ["Acalypha nemorum","Southern acalypha","",null,"",""],
-  ["Acianthus exsertus","Mosquito orchid","",null,"",""],
-  ["Acianthus fornicatus","Pixie caps","",null,"",""],
-  ["Acmena ingens","Red apple","",null,"",""],
-  ["Acmena smithii","Lilly pilly","Full Sun",20,"",""],
-  ["Acronychia laevis","Glossy acronychia, hard aspen","",10,"",""],
-  ["Acronychia oblongifolia","Common acronychia","",null,"",""],
-  ["Acronychia pubescens","Hairy acronychia","",null,"",""],
-  ["Adiantum atroviride","Common maidenhair fern","",null,"",""],
-  ["Adiantum australasicum","Crow\u2019s nest fern","",null,"",""],
-  ["Adiantum formosum","Giant maidenhair fern","",null,"",""],
-  ["Ailanthus triphysa","White bean","",null,"",""],
-  ["Ajuga australis","Australian bugle","",0.3,"",""],
-  ["Alchornea ilicifolia","Native holly","",null,"",""],
-  ["Allocasuarina littoralis","Black she-oak","",6,"",""],
-  ["Allocasuarina torulosa","Forest she-oak","",null,"",""],
-  ["Alocasia brisbanensis","Cunjevoi","",null,"",""],
-  ["Alphitonia excelsa","Red ash","",18,"",""],
-  ["Alpinia caerulea","Native ginger","",null,"",""],
-  ["Araucaria cunninghamii","Hoop pine","Full Sun",50,"",""],
-  ["Archontophoenix cunninghamiana","Piccabeen palm, Bangalow palm","",null,"",""],
-  ["Banksia integrifolia","Coast banksia, Honeysuckle oak","Full Sun",20,"",""],
-  ["Banksia spinulosa var. collina","","Full Sun",3,"",""],
-  ["Blechnum cartilagineum","Gristle fern","Partial Shade",null,"",""],
-  ["Callistemon salignus","White bottlebrush, Willow bottlebrush","Full Sun",2,"",""],
-  ["Callistemon viminalis","River bottlebrush","Full Sun",5,"",""],
-  ["Castanospermum australe","Black bean, Moreton Bay chestnut","",null,"",""],
-  ["Corymbia citriodora","Lemon-scented gum, Spotted gum","",null,"",""],
-  ["Corymbia intermedia","Pink bloodwood","",40,"",""],
-  ["Dianella caerulea var assera","Blue flax lily","Full Sun",1,"",""],
-  ["Dianella revoluta","Blue flax lily","Full Sun",1,"",""],
-  ["Doodia aspera","Prickly rasp fern","",null,"",""],
-  ["Elaeocarpus reticulatus","Blueberry ash","",null,"",""],
-  ["Eucalyptus pilularis","Blackbutt","",null,"",""],
-  ["Eucalyptus tereticornis","Blue gum, Forest red gum","",30,"",""],
-  ["Ficus macrophylla","Moreton Bay fig","",50,"",""],
-  ["Grevillea robusta","Silky oak","Full Sun",35,"",""],
-  ["Hardenbergia violacea","Native sarsaparilla, False sarsaparilla","Partial Shade",3,"",""],
-  ["Hibbertia scandens","Twining guinea flower","Partial Shade",3,"",""],
-  ["Hymenosporum flavum","Native frangipani","",20,"",""],
-  ["Livistona australis","Cabbage-tree palm","",null,"",""],
-  ["Lomandra confertifolia","matrush","Partial Shade",1,"",""],
-  ["Lomandra hystrix","matrush, creek matrush","Partial Shade",1,"",""],
-  ["Lomandra longifolia","Long-leaved matrush","Partial Shade",1,"",""],
-  ["Lophostemon confertus","Brush box","",35,"",""],
-  ["Macadamia integrifolia","Bush nut","",20,"",""],
-  ["Pandorea jasminoides","Bower vine","Full Sun",6,"",""],
-  ["Pandorea pandorana","Wonga vine","Full Sun",6,"",""],
-  ["Pittosporum undulatum","Sweet pittosporum","",25,"",""],
-  ["Podocarpus elatus","Plum pine","",40,"",""],
-  ["Viola hederacea","Native violet","Full Shade",0.15,"",""],
+// ── PLANTING PLANNER 2026 — authoritative species list ────────────────────────
+// Format: [botanical, commonName, shade, spacingM, thumbUrl, pageUrl]
+// spacingM is used for the placement circle on the canvas.
+// Floralist localStorage can only ENRICH these entries (better spacing value),
+// never add extra species.
+const PLANNER_SPECIES = [
+  // Creek Bank – Inundation
+  ["Carex appressa","Tall Sedge","Partial Shade",1,"","https://sown.com.au/carex-appressa-cyperaceae-carex-tall-sedge/"],
+  ["Casuarina cunninghamiana","River Oak","Full Sun",20,"","https://sown.com.au/casuarina-cunninghamiana-casuarinaceae-river-oak/"],
+  ["Ficus coronata","Creek Sandpaper Fig","Partial Shade",15,"","https://sown.com.au/ficus-coronata-moraceae-creek-sandpaper-fig/"],
+  ["Lomandra hystrix","Creek Matrush","Partial Shade",1,"","https://sown.com.au/lomandra-hystrix-lomandraceae-creek-matrush/"],
+  ["Waterhousea floribunda","Waterhousea","Partial Shade",30,"","https://sown.com.au/waterhousea-floribunda-myrtacea-weeping-lilly-pilly/"],
+  // Creek Bank – No Inundation
+  ["Dianella caerulea","Blue Flax Lily","Full Sun",1,"","https://sown.com.au/dianella-caerulea-phormiaceae-blue-flax-lily/"],
+  ["Christella dentata","Binung Fern","Partial Shade",1,"","https://sown.com.au/christella-dentata-thelypteridaceae-binung-fern/"],
+  ["Lomandra longifolia","Long-leaved Matrush","Partial Shade",1,"","https://sown.com.au/lomandra-longifolia-lomandraceae-long-leaved-matrush/"],
+  ["Proiphys cunninghamii","Brisbane Lily","Partial Shade",1,"","https://sown.com.au/proiphys-cunninghamii-amaryllidaceae-brisbane-lily/"],
+  ["Rubus probus","Atherton Raspberry","Full Sun",2.5,"","https://sown.com.au/rubus-probus-rosaceae-atherton-raspberry/"],
+  // Subtropical Rainforest Shrubs
+  ["Callicarpa pedunculata","Velvet Leaf","Partial Shade",1,"","https://sown.com.au/callicarpa-pedunculata-verbenaceae-velvet-leaf/"],
+  ["Cordyline rubra","Red-Fruited Palm Lily","Partial Shade",6,"","https://sown.com.au/cordyline-rubra-asparagaceae-red-fruited-palm-lily/"],
+  ["Deeringia amaranthoides","Shrubby Deeringia","Partial Shade",1,"","https://sown.com.au/deeringia-amaranthoides-amaranthaceae-shrubby-deeringia/"],
+  ["Dodonaea triquetra","Forest Hop Bush","Full Sun",2,"","https://sown.com.au/dodonaea-triquetra-sapindaceae-forest-hop-bush/"],
+  ["Eupomatia laurina","Bolwarra","Partial Shade",1,"","https://sown.com.au/eupomatia-laurina-eupomatiaceae-bolwarra/"],
+  ["Hibiscus heterophyllus","Native Rosella","Full Sun",6,"","https://sown.com.au/hibiscus-heterophyllus-malvaceae-native-rosella/"],
+  ["Myrsine variabilis","Muttonwood","Partial Shade",12,"","https://sown.com.au/myrsine-variabilis-myrsinaceae-muttonwood/"],
+  ["Pavetta australiensis","Pavetta","Partial Shade",4,"","https://sown.com.au/pavetta-australiensis-rubiaceae-pavetta/"],
+  ["Pipturus argenteus","Native Mulberry","Partial Shade",8,"","https://sown.com.au/pipturus-argenteus-urticaceae-native-mulberry/"],
+  ["Rhodosphaera rhodanthema","Deep Yellowwood","Partial Shade",20,"","https://sown.com.au/rhodosphaera-rhodanthema-anacardiaceae-deep-yellowwood/"],
+  ["Trema tomentosa","Poison Peach","Full Sun",5,"","https://sown.com.au/trema-tomentosa-cannabaceae-poison-peach/"],
+  // Subtropical Rainforest Trees
+  ["Acmena smithii","Narrow-leaved Lilly Pilly","Full Sun",20,"","https://sown.com.au/acmena-smithii-myrtaceae-lilly-pilly/"],
+  ["Acronychia laevis","Glossy Acronychia","Partial Shade",10,"","https://sown.com.au/acronychia-laevis-rutaceae-glossy-achronychia-hard-aspen/"],
+  ["Alphitonia excelsa","Soap Tree","Full Sun",18,"","https://sown.com.au/alphitonia-excelsa-rhamnaceae-red-ash-soap-tree/"],
+  ["Elaeocarpus grandis","Blue Quandong","Partial Shade",35,"","https://sown.com.au/elaeocarpus-grandis-elaeocarpaceae-blue-quandong/"],
+  ["Flindersia australis","Crow's Ash","Full Sun",30,"","https://sown.com.au/flindersia-australis-rutaceae-crows-ash/"],
+  ["Harpullia pendula","Tulipwood","Partial Shade",20,"","https://sown.com.au/harpullia-pendula-sapindaceae-tulipwood/"],
+  ["Hymenosporum flavum","Native Frangipani","Full Sun",20,"","https://sown.com.au/hymenosporum-flavum-pittosporaceae-native-frangipani/"],
+  ["Jagera pseudorhus","Foambark","Partial Shade",20,"","https://sown.com.au/jagera-pseudorhus-sapindaceae-foambark/"],
+  ["Mallotus claoxyloides","Smell of the Bush","Partial Shade",8,"","https://sown.com.au/mallotus-claoxyloides-euphorbiaceae-smell-of-the-bush/"],
+  ["Mallotus philippensis","Red Kamala","Partial Shade",25,"","https://sown.com.au/mallotus-philippensis-euphorbiaceae-red-kamala/"],
+  ["Notelaea longifolia","Native Olive","Partial Shade",9,"","https://sown.com.au/notelaea-longifolia-oleaceae-native-olive/"],
+  ["Pseuderanthemum variabile","Love Flower","Partial Shade",0.3,"","https://sown.com.au/pseuderanthemum-variabile-acanthaceae-love-flower/"],
+  ["Rhodomyrtus psidioides","Native Guava","Full Sun",12,"","https://sown.com.au/rhodomyrtus-psidioides-myrtaceae-native-guava/"],
+  ["Senna acclinis","Brush Senna","Full Sun",3,"","https://sown.com.au/senna-acclinis-caesalpiniaceae-brush-senna/"],
+  ["Solanum aviculare","Kangaroo Apple","Full Sun",4,"","https://sown.com.au/solanum-aviculare-solanaceae-kangaroo-apple/"],
+  ["Sterculia quadrifida","Peanut Tree","Full Sun",18,"","https://sown.com.au/sterculia-quadrifida-sterculiaceae-peanut-tree/"],
+  // Vines
+  ["Eustrephus latifolius","Wombat Berry","Partial Shade",3,"","https://sown.com.au/eustrephus-latifolius-liliaceae-wombat-berry/"],
+  ["Geitonoplesium cymosum","Scrambling Lilly","Partial Shade",3,"","https://sown.com.au/geitonoplesium-cymosum-liliaceae-scrambling-lilly/"],
+  ["Hardenbergia violacea","Native Sarsaparilla","Partial Shade",3,"","https://sown.com.au/hardenbergia-violacea-fabaceae-native-sarsaparilla/"],
+  ["Hibbertia scandens","Guinea Flower","Full Sun",3,"","https://sown.com.au/hibbertia-scandens-dilleniaceae-guinea-flower/"],
+  ["Smilax australis","Austral Sarsaparilla","Partial Shade",3,"","https://sown.com.au/smilax-australis-smilacaceae-austral-sarsaparilla/"],
+  ["Stephania japonica","Snake Vine","Partial Shade",3,"","https://sown.com.au/stephania-japonica-menispermaceae-snake-vine/"],
+  // Dry, Higher Areas, Poor Soils
+  ["Acacia fimbriata","Brisbane Wattle","Full Sun",5,"","https://sown.com.au/acacia-fimbriata-mimosaceae-brisbane-wattle-fringed-wattle/"],
+  ["Corymbia tessellaris","Moreton Bay Ash","Full Sun",30,"","https://sown.com.au/corymbia-tessellaris-myrtaceae-moreton-bay-ash/"],
+  ["Hovea acutifolia","Pointed-leaf Hovea","Full Sun",2,"","https://sown.com.au/hovea-acutifolia-fabaceae-pointed-leaf-hovea/"],
+  ["Indigofera australis","Native Indigo","Full Sun",2,"","https://sown.com.au/indigofera-australis-fabaceae-native-indigo/"],
+  ["Macadamia integrifolia","Queensland Nut","Full Sun",20,"","https://sown.com.au/macadamia-integrifolia-proteaceae-queensland-nut/"],
+  ["Petalostigma pubescens","Quinine Bush","Full Sun",6,"","https://sown.com.au/petalostigma-pubescens-picrodendraceae-quinine-bush/"],
+  ["Themeda triandra","Kangaroo Grass","Full Sun",1,"","https://sown.com.au/themeda-triandra-poaceae-kangaroo-grass/"],
 ];
 
+// Build a lookup map: lowercase botanical name → planner entry
+const PLANNER_MAP = new Map(PLANNER_SPECIES.map(p => [p[0].toLowerCase(), p]));
+
 function loadFloralistData() {
+  // Reads floralist localStorage but returns null — floralist enrichment is
+  // handled inside buildPlants() so the planner species list stays authoritative.
   try {
     const saved = localStorage.getItem('floralistData7');
     if (!saved) return null;
     const data = JSON.parse(saved);
     const rows = data.natives && data.natives.rows;
     if (!rows || !rows.length) return null;
-
-    // Floralist row format (9 cols):
-    // [0] THUMBNAIL  [1] PAGE URL  [2] BOTANICAL NAME  [3] COMMON NAME
-    // [4] SHADE TOLERANCE  [5] PLANT HEIGHT (m)  [6] PLANTING SPACE (m)
-    // [7] SOIL  [8] STOCK / notes
+    // Floralist row format: [thumb, pageUrl, botanical, commonName, shade, height, plantingSpace, soil, stock]
     return rows.map(r => {
       const botanical     = (r[2] || '').replace(' (copy)', '').trim();
       const commonName    = r[3] || '';
       const shade         = r[4] || '';
       const height        = parseFloat(r[5]) || null;
       const plantingSpace = parseFloat(r[6]) || null;
-      const spacing       = plantingSpace || height; // prefer planting space, fall back to height
+      const spacing       = plantingSpace || height;
       const thumbUrl      = r[0] || '';
       const pageUrl       = r[1] || '';
       return [botanical, commonName, shade, null, spacing, thumbUrl, pageUrl];
-    }).filter(r => r[0]); // skip blank botanical names
+    }).filter(r => r[0]);
   } catch(e) {
     return null;
   }
 }
 
-// Build PLANTS array from raw rows.
-// Input format (fallback): [botanical, commonName, shade, spacingM, thumbUrl, pageUrl]
-// Input format (localStorage): [botanical, commonName, shade, null, spacingM, thumbUrl, pageUrl]
-// Output format: [botanical, commonName, shade, spacingM, thumbUrl, pageUrl]
-function buildPlants(rawRows) {
-  const seen = new Set();
-  return rawRows
-    .filter(r => r[0] && !seen.has(r[0]) && seen.add(r[0]))
-    .map(r => {
-      // Handle both 6-element fallback format and 7-element localStorage format
-      const isFallback = r.length === 6;
-      if (isFallback) {
-        return [r[0], r[1], r[2], r[3] != null ? parseFloat(r[3]) : null, r[4] || '', r[5] || ''];
-      } else {
-        // localStorage format: spacingM is at index 4
-        return [r[0], r[1], r[2], r[4] != null ? parseFloat(r[4]) : null, r[5] || '', r[6] || ''];
-      }
+// Build PLANTS array — always from PLANNER_SPECIES, optionally enriched by floralist.
+// Floralist can update spacing/shade/thumb/pageUrl for matching species, but cannot
+// add species that are not in PLANNER_SPECIES.
+function buildPlants(floralistRows) {
+  // Build enrichment map from floralist (keyed by lowercase botanical name)
+  const enrichMap = new Map();
+  if (floralistRows) {
+    floralistRows.forEach(r => {
+      const key = r[0].toLowerCase();
+      enrichMap.set(key, r);
     });
+  }
+
+  return PLANNER_SPECIES.map(base => {
+    const key = base[0].toLowerCase();
+    const enrich = enrichMap.get(key);
+    if (!enrich) return [...base]; // use planner data as-is
+    // Merge: prefer floralist spacing if present, otherwise keep planner spacing
+    // floralist format: [botanical, commonName, shade, null, spacing, thumbUrl, pageUrl]
+    const spacing  = (enrich[4] != null ? parseFloat(enrich[4]) : null) || base[3];
+    const shade    = enrich[2] || base[2];
+    const thumbUrl = enrich[5] || base[4];
+    const pageUrl  = enrich[6] || base[5];
+    return [base[0], base[1], shade, spacing, thumbUrl, pageUrl];
+  });
 }
 
-const floralistRaw = loadFloralistData() || FLORALIST_FALLBACK;
+const floralistRaw = loadFloralistData(); // may be null — that's fine
 let PLANTS = buildPlants(floralistRaw);
 
 // Track where data came from for the status badge
-const dataSource = loadFloralistData() ? 'floralist' : 'fallback';
+const dataSource = floralistRaw ? 'floralist' : 'fallback';
 
 
 // ── SIZE CATEGORIES ───────────────────────────────────────────────────────────
@@ -493,7 +467,6 @@ function sizeCategory(spaceM) {
 
 const SIZE_CATEGORIES = ['Groundcover','Small shrub','Large shrub','Small tree','Large tree'];
 let activeSizeFilter = '';
-let activeSunFilter = '';
 
 // ── PLANT COLOUR ASSIGNMENT ───────────────────────────────────────────────────
 function hashColor(str) {
@@ -663,12 +636,12 @@ function drawPaletteIcon(canvas, color, shape) {
 
 // ── GARDEN OBJECTS ────────────────────────────────────────────────────────────
 const OBJECT_DEFS = {
-  shed:      { label: 'Shed',        w: 3,  h: 2, color: '#8a7060' },
+  shed:      { label: 'Shed',        w: 4,  h: 4, color: '#8a7060' },
   gazebo:    { label: 'Gazebo',      w: 4,  h: 4, color: '#c8a060' },
-  house:     { label: 'House',       w: 8,  h: 6, color: '#b07050' },
+  house:     { label: 'House',       w: 4,  h: 4, color: '#b07050' },
   path:      { label: 'Garden Path', w: 1,  h: 4, color: '#c8b890' },
   waterway:  { label: 'Waterway',    w: 1,  h: 4, color: '#4a90c4' },
-  pond_dam:  { label: 'Pond/Lake',   w: 6,  h: 6, color: '#2a6496' },
+  pond_dam:  { label: 'Pond/Lake',   w: 4,  h: 4, color: '#2a6496' },
 };
 
 let selectedObject = null;
@@ -1157,29 +1130,6 @@ function buildSizeFilters() {
   });
 }
 
-const SUN_OPTIONS = [
-  { value: 'Full Sun',      label: '☀ Full Sun' },
-  { value: 'Partial Shade', label: '⛅ Partial' },
-  { value: 'Full Shade',    label: '🌥 Shade' },
-];
-
-function buildSunFilters() {
-  const wrap = document.getElementById('sun-filters');
-  wrap.innerHTML = '';
-  const all = document.createElement('button');
-  all.className = 'sun-pill' + (!activeSunFilter ? ' active' : '');
-  all.textContent = 'All'; all.onclick = () => { activeSunFilter = ''; renderPalette(); buildSunFilters(); };
-  wrap.appendChild(all);
-  SUN_OPTIONS.forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'sun-pill' + (activeSunFilter === opt.value ? ' active' : '');
-    btn.dataset.sun = opt.value;
-    btn.textContent = opt.label;
-    btn.onclick = () => { activeSunFilter = opt.value; renderPalette(); buildSunFilters(); };
-    wrap.appendChild(btn);
-  });
-}
-
 function renderPalette() {
   const q = document.getElementById('palette-search').value.toLowerCase();
   const pal = document.getElementById('plant-palette');
@@ -1188,8 +1138,7 @@ function renderPalette() {
   const filtered = PLANTS.filter(p => {
     const matchQ = !q || p[0].toLowerCase().includes(q) || (p[1] && p[1].toLowerCase().includes(q));
     const matchS = !activeSizeFilter || sizeCategory(p[3]) === activeSizeFilter;
-    const matchSun = !activeSunFilter || p[2] === activeSunFilter;
-    return matchQ && matchS && matchSun;
+    return matchQ && matchS;
   });
 
   document.getElementById('palette-count').textContent = `(${filtered.length})`;
@@ -1285,62 +1234,6 @@ function hidePlantTooltip() {
 }
 
 // ── BED / CANVAS ──────────────────────────────────────────────────────────────
-function startTitleRename() {
-  if (!activeBed) return;
-  const titleEl = document.getElementById('bed-title');
-  const oldName = activeBed;
-
-  const input = document.createElement('input');
-  input.className = 'bed-title-input';
-  input.value = oldName;
-  // Size input to content
-  input.style.width = Math.max(80, oldName.length * 11) + 'px';
-  input.oninput = () => { input.style.width = Math.max(80, input.value.length * 11) + 'px'; };
-
-  titleEl.replaceWith(input);
-  input.focus(); input.select();
-
-  function commit() {
-    const newName = input.value.trim();
-    const restoredTitle = document.createElement('div');
-    restoredTitle.className = 'bed-title';
-    restoredTitle.id = 'bed-title';
-    restoredTitle.title = 'Click to rename';
-    restoredTitle.onclick = startTitleRename;
-
-    if (!newName || newName === oldName || !gardenData.beds[oldName]) {
-      restoredTitle.textContent = activeBed;
-      input.replaceWith(restoredTitle);
-      return;
-    }
-    if (gardenData.beds[newName]) {
-      showToast('That name is already used');
-      input.focus(); return;
-    }
-
-    // Rename the bed key preserving order
-    const beds = {};
-    Object.entries(gardenData.beds).forEach(([k, v]) => { beds[k === oldName ? newName : k] = v; });
-    gardenData.beds = beds;
-    gardenData.objects.forEach(o => { if (o.bed === oldName) o.bed = newName; });
-    activeBed = newName;
-
-    restoredTitle.textContent = newName;
-    input.replaceWith(restoredTitle);
-
-    saveToStorage();
-    buildBedSelector();
-    document.getElementById('bed-dims').textContent = `${gardenData.beds[activeBed].width}m × ${gardenData.beds[activeBed].length}m ✎`;
-    showToast(`Renamed to "${newName}"`);
-  }
-
-  input.addEventListener('blur', commit);
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
-    if (e.key === 'Escape') { input.value = oldName; input.blur(); }
-  });
-}
-
 function selectBed(name) {
   activeBed = name;
   selectedPlant = null;
@@ -1819,7 +1712,7 @@ function handlePaletteTouchStart(e) {
 
 function addPlantToCanvas(name, bx, by) {
   const def = plantDef(name);
-  const sp = def[3] || 1.0;
+  const sp = 1.0;
   const bed = gardenData.beds[activeBed];
   const [nx,ny] = snapToBed(bx, by, sp);
   const np = { id: nextId++, name, spacing: sp, x: nx, y: ny };
@@ -1974,16 +1867,15 @@ function toggleSection(id) {
 // ── RELOAD FROM FLORALIST ─────────────────────────────────────────────────────
 function reloadFloralistData() {
   const fresh = loadFloralistData();
-  if (!fresh) {
-    showToast('Floralist data not found — open floralist.html first');
-    return;
-  }
-  PLANTS = buildPlants(fresh);
-  updateDataBadge(true);
+  PLANTS = buildPlants(fresh); // fresh may be null — buildPlants handles that
+  updateDataBadge(!!fresh);
   buildSizeFilters();
-  buildSunFilters();
   renderPalette();
-  showToast(`✓ Loaded ${PLANTS.length} species from Floralist`);
+  if (fresh) {
+    showToast(`✓ Floralist enrichment applied · ${PLANTS.length} Planner species`);
+  } else {
+    showToast(`Floralist data not found — showing ${PLANTS.length} Planner species`);
+  }
 }
 
 // Auto-reload palette whenever floralist.html saves in another tab
@@ -1995,211 +1887,13 @@ window.addEventListener('storage', e => {
 
 function updateDataBadge(fromFloralist) {
   const badge = document.getElementById('data-source-badge');
-  if (fromFloralist || loadFloralistData()) {
-    badge.textContent = `✓ ${PLANTS.length} species from Floralist`;
+  if (fromFloralist) {
+    badge.textContent = `✓ ${PLANTS.length} species (Planner + Floralist)`;
     badge.style.cssText = 'font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;flex-shrink:0;background:#e8f0d8;color:#2a5a10;border:1px solid #b0cc80';
   } else {
-    badge.textContent = `△ Using built-in data (${PLANTS.length} species)`;
-    badge.style.cssText = 'font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;flex-shrink:0;background:#fff8e0;color:#7a5a00;border:1px solid #d4b860';
+    badge.textContent = `🌿 Planting Planner 2026 · ${PLANTS.length} species`;
+    badge.style.cssText = 'font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;flex-shrink:0;background:#eaf3e8;color:#2d5a27;border:1px solid #b5d4ae';
   }
-}
-
-// ── PRINT ─────────────────────────────────────────────────────────────────────
-function printLayout() {
-  const SCALE = 96; // px per metre for print SVG
-  const PAD = 36;
-
-  // ── Gather all plants across all beds ──────────────────────────────────────
-  const bedEntries = Object.entries(gardenData.beds);
-  const allPlants = [];
-  bedEntries.forEach(([bedName, bed]) => {
-    bed.plants.forEach(p => {
-      const def = plantDef(p.name);
-      allPlants.push({ bed: bedName, name: p.name, common: def[1] || '', shade: def[2] || '', spacing: p.spacing });
-    });
-  });
-
-  // ── Build plant list table HTML ────────────────────────────────────────────
-  function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  // Group by bed
-  const byBed = {};
-  allPlants.forEach(p => { if (!byBed[p.bed]) byBed[p.bed] = []; byBed[p.bed].push(p); });
-
-  let tableHtml = '';
-  Object.entries(byBed).forEach(([bedName, plants]) => {
-    // Count duplicates
-    const counts = {};
-    plants.forEach(p => { counts[p.name] = (counts[p.name] || 0) + 1; });
-    const unique = [...new Map(plants.map(p => [p.name, p])).values()];
-
-    tableHtml += `<h3 class="bed-heading">${escH(bedName)}</h3>
-<table>
-  <thead><tr><th>#</th><th>Botanical name</th><th>Common name</th><th>Sun</th><th>Spacing</th><th>Qty</th></tr></thead>
-  <tbody>` +
-      unique.map((p, i) => `<tr>
-    <td>${i + 1}</td>
-    <td class="italic">${escH(p.name)}</td>
-    <td>${escH(p.common ? p.common.split(',')[0] : '—')}</td>
-    <td>${escH(p.shade || '—')}</td>
-    <td>${p.spacing}m</td>
-    <td>${counts[p.name]}</td>
-  </tr>`).join('') +
-    `</tbody></table>`;
-  });
-
-  if (!tableHtml) tableHtml = '<p class="empty-msg">No plants have been added to any bed yet.</p>';
-
-  // ── Build SVG map for each bed ─────────────────────────────────────────────
-  const PALETTE = ['#4a8a2a','#2a6a4a','#8a6a2a','#6a2a8a','#2a4a8a','#8a2a4a',
-                   '#3a7a5a','#7a5a2a','#5a2a7a','#2a7a7a','#7a2a2a','#4a6a2a'];
-  function hColor(str) {
-    let h = 0;
-    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-    const hues = [100,115,130,85,145,70,160,90];
-    const hue = hues[h % hues.length];
-    const sat = 40 + (h >> 4) % 30;
-    const lit = 30 + (h >> 8) % 25;
-    return `hsl(${hue},${sat}%,${lit}%)`;
-  }
-
-  let mapsHtml = '';
-  bedEntries.forEach(([bedName, bed]) => {
-    if (!bed.plants.length && !gardenData.objects.filter(o=>o.bed===bedName).length) return;
-
-    const W = Math.round(bed.width  * SCALE);
-    const H = Math.round(bed.length * SCALE);
-    const svgW = W + PAD * 2;
-    const svgH = H + PAD * 2;
-
-    // Grid lines
-    let gridSvg = '';
-    for (let x = 0; x <= bed.width; x++) {
-      const px = PAD + Math.round(x * SCALE);
-      gridSvg += `<line x1="${px}" y1="${PAD}" x2="${px}" y2="${PAD+H}" stroke="#c8d8a8" stroke-width="${x===0||x===bed.width?1.5:.5}"/>`;
-      gridSvg += `<text x="${px}" y="${PAD-6}" text-anchor="middle" font-size="9" fill="#7a9a50">${x}m</text>`;
-    }
-    for (let y = 0; y <= bed.length; y++) {
-      const py = PAD + Math.round(y * SCALE);
-      gridSvg += `<line x1="${PAD}" y1="${py}" x2="${PAD+W}" y2="${py}" stroke="#c8d8a8" stroke-width="${y===0||y===bed.length?1.5:.5}"/>`;
-      gridSvg += `<text x="${PAD-6}" y="${py+4}" text-anchor="end" font-size="9" fill="#7a9a50">${y}m</text>`;
-    }
-
-    // Plant circles
-    let plantSvg = '';
-    const legendItems = {};
-
-    bed.plants.forEach(p => {
-      const def = plantDef(p.name);
-      const label = def[1] ? def[1].split(',')[0] : p.name.split(' ').slice(0,2).join(' ');
-      const col = hColor(p.name);
-      const cx = PAD + Math.round(p.x * SCALE);
-      const cy = PAD + Math.round(p.y * SCALE);
-      const r  = Math.round((p.spacing / 2) * SCALE);
-      const shortLabel = label.length > 12 ? label.slice(0,11)+'…' : label;
-      const fs = Math.max(7, Math.min(11, r * 0.38));
-
-      legendItems[p.name] = { label, col };
-
-      plantSvg += `<g>
-  <title>${escH(p.name)}${def[1] ? ' — ' + escH(def[1].split(',')[0]) : ''} · ${p.spacing}m spacing</title>
-  <circle cx="${cx}" cy="${cy}" r="${r}" fill="${col}" fill-opacity="0.82" stroke="white" stroke-width="1.5"/>
-  ${r >= 14
-    ? `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" font-size="${fs}" fill="white" font-weight="600">${escH(shortLabel)}</text>`
-    : `<text x="${cx}" y="${cy + r + 10}" text-anchor="middle" font-size="8" fill="#444">${escH(shortLabel)}</text>`
-  }
-</g>`;
-    });
-
-    // Legend
-    const legendEntries = Object.entries(legendItems);
-    const legendHtml = legendEntries.length
-      ? `<div class="map-legend">${legendEntries.map(([name, {label, col}]) =>
-          `<span class="leg-item"><svg width="10" height="10"><circle cx="5" cy="5" r="5" fill="${col}"/></svg>${escH(label)}</span>`
-        ).join('')}</div>`
-      : '';
-
-    mapsHtml += `
-<div class="map-block">
-  <h3 class="bed-heading">${escH(bedName)} <span class="bed-dim">${bed.width}m × ${bed.length}m</span></h3>
-  <svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg" style="font-family:Georgia,serif">
-    <rect x="${PAD}" y="${PAD}" width="${W}" height="${H}" fill="#edf5dc" stroke="#8faa5e" stroke-width="1.5" rx="3"/>
-    ${gridSvg}
-    ${plantSvg}
-  </svg>
-  ${legendHtml}
-</div>`;
-  });
-
-  if (!mapsHtml) mapsHtml = '<p class="empty-msg">No beds with plants to map.</p>';
-
-  // ── Assemble print window ──────────────────────────────────────────────────
-  const today = new Date().toLocaleDateString('en-AU', { day:'numeric', month:'long', year:'numeric' });
-
-  const printDoc = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Garden Plan — ${today}</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Georgia', serif; color: #1e2a10; background: #fff; padding: 28px 36px; }
-  h1 { font-size: 22px; color: #2d5016; margin-bottom: 3px; }
-  .subtitle { font-size: 11px; color: #7a7560; margin-bottom: 24px; }
-
-  /* ── Plant list ── */
-  .section-title { font-size: 15px; font-weight: bold; color: #2d5016; border-bottom: 1.5px solid #b0c880; padding-bottom: 4px; margin: 22px 0 12px; letter-spacing:.01em; }
-  .bed-heading { font-size: 13px; font-weight: bold; color: #3b6d11; margin: 14px 0 6px; }
-  .bed-dim { font-size: 11px; font-weight: normal; color: #7a9a60; margin-left: 6px; }
-  table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 10px; }
-  thead tr { background: #2d5016; color: #f0ead8; }
-  th { padding: 5px 9px; text-align: left; font-size: 10px; font-weight: 600; letter-spacing:.05em; text-transform:uppercase; }
-  td { padding: 5px 9px; border-bottom: 1px solid #e0d8c0; vertical-align: top; }
-  tr:last-child td { border-bottom: none; }
-  tr:nth-child(even) td { background: #f6f3ec; }
-  td.italic { font-style: italic; color: #2d5016; }
-
-  /* ── Maps ── */
-  .map-block { margin-bottom: 28px; page-break-inside: avoid; }
-  svg text { font-family: 'DM Sans', Arial, sans-serif; }
-  .map-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px; font-size: 10px; color: #444; }
-  .leg-item { display: flex; align-items: center; gap: 5px; }
-
-  .empty-msg { font-size: 12px; color: #999; font-style: italic; margin: 10px 0; }
-
-  /* ── Print rules ── */
-  @media print {
-    body { padding: 12px 18px; }
-    .no-print { display: none !important; }
-    @page { margin: 15mm; size: A4 portrait; }
-    h1 { font-size: 18px; }
-    .section-title { break-before: auto; }
-  }
-</style>
-</head>
-<body>
-
-<div class="no-print" style="background:#2d5016;color:#f0ead8;padding:10px 18px;border-radius:8px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
-  <span style="font-family:sans-serif;font-size:13px">🖨 Ready to print — click the button or use Ctrl/Cmd+P</span>
-  <button onclick="window.print()" style="background:#fff;color:#2d5016;border:none;border-radius:6px;padding:6px 16px;font-size:13px;font-weight:600;cursor:pointer">Print</button>
-</div>
-
-<h1>🌿 Bushcare Site / Native Garden Plan</h1>
-<p class="subtitle">Printed ${today}</p>
-
-<div class="section-title">Plant List</div>
-${tableHtml}
-
-<div class="section-title">Garden Maps</div>
-${mapsHtml}
-
-</body>
-</html>`;
-
-  const win = window.open('', '_blank', 'width=900,height=700');
-  win.document.write(printDoc);
-  win.document.close();
-  win.focus();
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -2213,7 +1907,6 @@ Object.keys(OBJECT_DEFS).forEach(type => {
 
 buildBedSelector();
 buildSizeFilters();
-buildSunFilters();
 renderPalette();
 updateDataBadge(dataSource === 'floralist');
 selectBed(Object.keys(gardenData.beds)[0]);
